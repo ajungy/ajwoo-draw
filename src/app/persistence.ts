@@ -28,6 +28,7 @@ export function useAutosave(store: EditorStore, enabled: boolean): void {
           currentPageId: store.currentPageId,
           style: store.style,
           showGrid: store.showGrid,
+          scrappy: store.scrappy,
           savedAt: Date.now(),
         });
         lastSaved.current = doc;

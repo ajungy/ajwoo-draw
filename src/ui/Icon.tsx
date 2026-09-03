@@ -40,18 +40,23 @@ export type IconName =
   | 'connector'
   | 'arrow-start'
   | 'arrow-end'
-  | 'file';
+  | 'file'
+  | 'scrappy';
 
 const PATHS: Record<IconName, string> = {
   // An open, flat palm — four fingers of similar length so it reads as "pan/
   // grab", never as a single pointing finger.
   hand: 'M7 12.5V8a1.5 1.5 0 0 1 3 0v4.5M10.3 11.7V5.7a1.5 1.5 0 0 1 3 0v6M13.6 12.2V6.7a1.5 1.5 0 0 1 3 0v5.5M16.9 13.3V9.8a1.5 1.5 0 0 1 3 0V15a6.2 6.2 0 0 1-6.2 6.2h-1.6a5.6 5.6 0 0 1-4.35-2.07l-3-3.65a1.55 1.55 0 0 1 2.4-1.96L9 15.5',
-  pen: 'M4 20l4.5-1 9.6-9.6a2.1 2.1 0 0 0-3-3L5.5 16 4 20zM14.5 6.5l3 3',
+  // A single clean pencil silhouette rather than a scattered multi-stroke
+  // sketch — one continuous outline reads as "pen" instantly at 20px.
+  pen: 'M21.17 6.81a1 1 0 0 0-3.98-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5zM15 5l4 4',
   line: 'M4.5 19.5L19.5 4.5',
   shape: 'M4 4h9v9H4zM15.5 21a5 5 0 1 0 0-10 5 5 0 0 0 0 10z',
   text: 'M5 6V4h14v2M12 4v16M9 20h6',
   select: 'M5 3l6.5 17 2.4-6.8 6.6-2.6L5 3z',
-  eraser: 'M8.5 20H20M3.9 15.6l5.7 5.7 10-10a2 2 0 0 0 0-2.8l-3-3a2 2 0 0 0-2.8 0l-10 10a2 2 0 0 0 0 2.8zM9 9l6 6',
+  // A single beveled block resting on a baseline — one clear "eraser" shape
+  // rather than a tangle of crossing lines.
+  eraser: 'M7 21l-4.3-4.3a2 2 0 0 1 0-2.8l9.6-9.6a2 2 0 0 1 2.8 0l5.6 5.6a2 2 0 0 1 0 2.8L13 21M22 21H7M5 11l9 9',
   undo: 'M4 9h10a5 5 0 0 1 0 10h-5M4 9l4-4M4 9l4 4',
   redo: 'M20 9H10a5 5 0 0 0 0 10h5M20 9l-4-4M20 9l-4 4',
   share: 'M12 15V3m0 0L8 7m4-4l4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6',
@@ -83,6 +88,8 @@ const PATHS: Record<IconName, string> = {
   'arrow-start': 'M20 12H6M11 7L6 12l5 5',
   'arrow-end': 'M4 12h14M13 7l5 5-5 5',
   file: 'M13 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8l-5-5zM13 3v5h5',
+  // A hand-drawn wobble, standing in for "sketchy" the way a squiggle always does.
+  scrappy: 'M3 15c1.5-3 3 3 4.5 0s3-6 4.5-1 3 5 4.5 1 2-5 3.5-2',
 };
 
 interface IconProps {

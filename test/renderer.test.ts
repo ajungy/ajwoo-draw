@@ -108,6 +108,27 @@ describe('scene renderer', () => {
     expect(ctx.calls.some((c) => c.fn === 'fill')).toBe(true);
   });
 
+  it('redraws the in-progress stroke as points are added, rather than freezing the first frame', () => {
+    // The interaction layer mutates the draft object's own `points` array in
+    // place across a drag — it never gets a new identity until commit. A path
+    // cache keyed by object identity would build its outline once, from
+    // whatever the array looked like on the very first frame, and never touch
+    // it again: the classic "line doesn't appear until you let go" bug.
+    const draft = pen({ points: [{ x: 0, y: 0, p: 0.5 }] });
+    const firstFrame = render([], {
+      ephemeral: { draft, marquee: null, snapObjectId: null, snapPoint: null },
+    });
+    draft.points.push({ x: 10, y: 10, p: 0.5 }, { x: 20, y: 0, p: 0.5 });
+    const laterFrame = render([], {
+      ephemeral: { draft, marquee: null, snapObjectId: null, snapPoint: null },
+    });
+    expect(laterFrame.calls.some((c) => c.fn === 'fill')).toBe(true);
+    // Both frames drew *something*, but they must not be the exact same
+    // stub Path2D instance reused from a stale cache.
+    const pathOf = (calls: typeof firstFrame.calls) => calls.find((c) => c.fn === 'fill')?.args[0];
+    expect(pathOf(laterFrame.calls)).not.toBe(pathOf(firstFrame.calls));
+  });
+
   it('draws selection chrome only when the overlay is on', () => {
     const box = shape();
     const withChrome = render([box], { selection: new Set([box.id]) });

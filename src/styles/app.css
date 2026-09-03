@@ -72,10 +72,10 @@ body {
   display: grid;
   /* dvh tracks the collapsing mobile address bar; the canvas never gets cropped. */
   height: 100dvh;
-  /* header, contextual row (collapses to 0 when it has nothing to show), the
-     canvas itself, and the bottom toolbar (collapses to 0 once it moves into
-     the header at wider widths). */
-  grid-template-rows: auto auto 1fr auto;
+  /* header, the tool row (always present, always top-aligned — it never moves
+     to the bottom or into the header), the contextual row (collapses to 0
+     when it has nothing to show), then the canvas fills what's left. */
+  grid-template-rows: auto auto auto 1fr;
   background: var(--surface-page);
 }
 
@@ -117,14 +117,32 @@ body {
     crosshair;
 }
 
+/* The eraser modifier swaps the pen's nib cursor for its own block, hotspot at
+   the corner that actually touches the page. */
+.canvas[data-tool='pen'][data-eraser] {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%23000000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 24l-5-5a2 2 0 0 1 0-3.2l11-11a2 2 0 0 1 2.8 0l6.4 6.4a2 2 0 0 1 0 2.8L15 22'/%3E%3Cpath d='M25 24H9'/%3E%3Cpath d='M7 13.5l9.5 9.5'/%3E%3C/g%3E%3C/svg%3E")
+    6 24,
+    crosshair;
+}
+
 /* ----------------------------------------------------------------- header -- */
 
 .header {
-  /* Three columns so the inline toolbar (when there's room for it) sits
-     genuinely centred between identity+pages and the action cluster, however
-     long the title or however many actions are showing. */
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* The top bar is always dark, deliberately independent of the light/dark
+     toggle that governs everything else — a fixed point of orientation, the
+     way a title bar or a menu bar stays put regardless of a document's own
+     theme. These are literal values, not semantic tokens, on purpose: this is
+     the one place in the app that must NOT follow `data-theme`. */
+  --header-bg: #0E0E10;
+  --header-text: #F2F2F3;
+  --header-text-secondary: #A1A1A8;
+  --header-border: #2E2E33;
+  --header-hover: #232327;
+  --header-active-bg: #FFFFFF;
+  --header-active-text: #0E0E10;
+
+  display: flex;
   align-items: center;
   gap: var(--s-4);
   min-height: var(--header-h);
@@ -132,14 +150,69 @@ body {
   padding-top: max(var(--s-2), var(--safe-top));
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
-  border-bottom: var(--line) solid var(--border-subtle);
-  background: var(--surface-page);
+  border-bottom: var(--line) solid var(--header-border);
+  background: var(--header-bg);
+  color: var(--header-text);
+}
+
+.header .icon-button {
+  color: var(--header-text-secondary);
+}
+
+@media (any-hover: hover) {
+  .header .icon-button:hover:not(:disabled) {
+    background: var(--header-hover);
+    color: var(--header-text);
+  }
+}
+
+.header .icon-button[data-active] {
+  background: var(--header-active-bg);
+  color: var(--header-active-text);
+}
+
+.header .icon-button:disabled {
+  color: var(--header-border);
+}
+
+.header .logo {
+  color: var(--header-text);
+}
+
+.header .title-input {
+  color: var(--header-text);
+}
+
+.header .title-input:hover,
+.header .title-input:focus {
+  background: var(--header-hover);
+}
+
+.header .page-indicator__button,
+.header .zoom-label {
+  color: var(--header-text-secondary);
+}
+
+@media (any-hover: hover) {
+  .header .page-indicator__button:hover,
+  .header .zoom-label:hover {
+    background: var(--header-hover);
+    color: var(--header-text);
+  }
+}
+
+.header .header__pages,
+.header .header__zoom {
+  border-left-color: var(--header-border);
 }
 
 .header__left {
   display: flex;
   align-items: center;
   gap: var(--s-2);
+  /* The only side allowed to shrink — the action cluster on the right must
+     never lose its place, at any window size. */
+  flex: 1 1 auto;
   /* The title is the only element allowed to absorb a narrow header, so it
      shrinks to nothing before any control is pushed off-screen. */
   min-width: 0;
@@ -190,14 +263,6 @@ body {
   border-left: var(--line) solid var(--border-subtle);
 }
 
-.header__tools {
-  display: none;
-}
-
-.header__tools .toolbar {
-  gap: var(--s-1);
-}
-
 .page-indicator {
   position: relative;
 }
@@ -225,7 +290,10 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: var(--s-1);
-  min-width: 0;
+  /* Never shrinks and never wraps: undo/redo, zoom, and the overflow menu stay
+     right-aligned and fully visible at every window size — the title is what
+     gives way first. */
+  flex: 0 0 auto;
 }
 
 .menu-anchor {
@@ -470,16 +538,49 @@ body {
 
 /* --------------------------------------------------------------- controls -- */
 
-.controls {
+/* The tool row: always its own row directly under the header, top-aligned,
+   regardless of window size — it never migrates into the header and never
+   drops to the bottom of the screen. */
+.toolbar-row {
   display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
+  align-items: center;
+  gap: var(--s-4);
   padding: var(--s-2) var(--s-4);
-  padding-bottom: max(var(--s-2), var(--safe-bottom));
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
-  border-top: var(--line) solid var(--border-subtle);
+  border-bottom: var(--line) solid var(--border-subtle);
   background: var(--surface-page);
+}
+
+.scrappy-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex: none;
+  height: var(--control-h-sm);
+  padding: 0 var(--s-4);
+  border: var(--line) solid var(--action-secondary-border);
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--t-caption-size);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--d-fast) var(--e-standard), color var(--d-fast) var(--e-standard);
+}
+
+@media (any-hover: hover) {
+  .scrappy-toggle:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.scrappy-toggle[aria-pressed='true'] {
+  background: var(--surface-inverse);
+  border-color: transparent;
+  color: var(--text-inverse);
 }
 
 .toolbar {
@@ -487,6 +588,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -847,20 +950,6 @@ body {
 /* Wide enough to hold identity, page navigation, the full tool set, and the
    action cluster on one line without anything feeling cramped: the toolbar
    moves into the header and the bottom bar — now otherwise empty — disappears. */
-@media (min-width: 900px) {
-  .header__tools {
-    display: flex;
-    align-items: center;
-    padding-inline: var(--s-2);
-    border-left: var(--line) solid var(--border-subtle);
-    border-right: var(--line) solid var(--border-subtle);
-  }
-
-  .controls {
-    display: none;
-  }
-}
-
 @media (max-width: 599px) {
   .header {
     gap: var(--s-2);
@@ -888,12 +977,35 @@ body {
     min-width: 44px;
     padding-inline: var(--s-2);
   }
+
+  .toolbar-row {
+    gap: var(--s-2);
+    padding-inline: var(--s-2);
+  }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
 }
 
-@media (max-width: 400px) {
-  /* Fit stays one tap away in the menu; zoom in/out are the pair worth
-     keeping permanently visible at the very narrowest widths. */
-  .header__zoom .icon-button:last-child {
+@media (max-width: 420px) {
+  /* Pinch and wheel zoom still work without the buttons; the percentage stays
+     visible (and still resets to 100% on tap) so zoom is never a mystery. */
+  .header__zoom .icon-button {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  /* The icon alone still says "sketchy toggle" once the pill has been used a
+     couple of times; the word is what a first-time visitor needs. */
+  .scrappy-toggle {
+    padding: 0;
+    width: var(--control-h-sm);
+    justify-content: center;
+  }
+
+  .scrappy-toggle span {
     display: none;
   }
 }

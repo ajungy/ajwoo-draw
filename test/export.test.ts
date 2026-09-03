@@ -60,6 +60,30 @@ describe('SVG export', () => {
   });
 });
 
+describe('Scrappy mode export', () => {
+  it('exports a clean straight edge when off, and a hand-drawn curved one when on', () => {
+    const page = pageWith([shape({ frame: { x: 0, y: 0, w: 200, h: 120 } })]);
+    const clean = exportPageToSvg(page, { scrappy: false });
+    const scrappy = exportPageToSvg(page, { scrappy: true });
+
+    // The fill trace is always clean (see exportSvg.ts); only the stroke
+    // trace should differ between the two modes.
+    const strokeTags = (svg: string) => svg.match(/<path[^>]*>/g)?.slice(1) ?? [];
+    expect(strokeTags(clean)[0]).not.toMatch(/ C /);
+    expect(strokeTags(scrappy)[0]).toMatch(/ C /);
+  });
+
+  it('renders shape labels and text objects in the handwritten face when on', () => {
+    const page = pageWith([shape({ text: 'Login' }), text({ text: 'note' })]);
+    const clean = exportPageToSvg(page, { scrappy: false });
+    const scrappy = exportPageToSvg(page, { scrappy: true });
+    expect(clean).not.toContain('Comic Sans');
+    // Every text element switches to the hand stack, not just one of them.
+    const handCount = (scrappy.match(/Comic Sans/g) ?? []).length;
+    expect(handCount).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('PNG export sizing', () => {
   it('uses the requested scale for an ordinary drawing', () => {
     const size = pngPixelSize({ x: 0, y: 0, w: 800, h: 600 }, 3);

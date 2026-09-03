@@ -7,6 +7,8 @@ export interface PngOptions {
   padding: number;
   /** Multiplier over CSS pixels. Defaults to the device ratio, capped for memory. */
   scale: number;
+  /** Mirrors the on-screen "Scrappy" mode. */
+  scrappy: boolean;
 }
 
 const MAX_PIXELS = 32_000_000;
@@ -36,7 +38,7 @@ export function pngPixelSize(box: Rect, requestedScale: number): PixelSize {
 
 export function defaultPngOptions(): PngOptions {
   const dpr = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
-  return { background: '#FFFFFF', padding: 32, scale: Math.min(3, Math.max(2, dpr)) };
+  return { background: '#FFFFFF', padding: 32, scale: Math.min(3, Math.max(2, dpr)), scrappy: false };
 }
 
 /**
@@ -79,6 +81,7 @@ export async function exportPageToPng(
     showGrid: false,
     theme,
     showOverlay: false,
+    scrappy: opts.scrappy,
   });
 
   return toBlob(canvas);

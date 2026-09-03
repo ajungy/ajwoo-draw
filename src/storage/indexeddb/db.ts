@@ -13,6 +13,7 @@ export interface StoredSession {
   currentPageId: string;
   style: StyleState;
   showGrid: boolean;
+  scrappy: boolean;
   savedAt: number;
 }
 
@@ -68,6 +69,7 @@ export async function loadSession(): Promise<StoredSession | null> {
     currentPageId,
     style: raw.style,
     showGrid: Boolean(raw.showGrid),
+    scrappy: Boolean(raw.scrappy),
     savedAt: typeof raw.savedAt === 'number' ? raw.savedAt : Date.now(),
   };
 }

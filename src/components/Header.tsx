@@ -4,7 +4,6 @@ import type { EditorStore } from '../app/store';
 import { IconButton } from '../ui/IconButton';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { Icon } from '../ui/Icon';
-import { Toolbar } from './Toolbar';
 
 export interface HeaderActions {
   share: () => void;
@@ -124,12 +123,6 @@ export function Header({ actions }: { actions: HeaderActions }) {
             onClick={() => store.stepPage(1)}
           />
         </div>
-      </div>
-
-      {/* Shown only when the header has room for it; the identical toolbar at
-          the bottom of the screen takes over below that width. */}
-      <div className="header__tools">
-        <Toolbar />
       </div>
 
       <div className="header__actions">

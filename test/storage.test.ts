@@ -21,6 +21,7 @@ describe('local persistence', () => {
       currentPageId: doc.pages[0].id,
       style: DEFAULT_STYLE,
       showGrid: true,
+      scrappy: false,
       savedAt: Date.now(),
     });
 
@@ -37,6 +38,7 @@ describe('local persistence', () => {
       currentPageId: 'a-page-that-was-deleted',
       style: DEFAULT_STYLE,
       showGrid: false,
+      scrappy: false,
       savedAt: Date.now(),
     });
     const restored = await loadSession();

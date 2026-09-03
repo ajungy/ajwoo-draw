@@ -46,6 +46,7 @@ async function boot() {
         store.replaceDocument(session.document, session.currentPageId);
         store.style = { ...DEFAULT_STYLE, ...session.style };
         store.showGrid = session.showGrid;
+        store.scrappy = session.scrappy;
       }
     } catch (error) {
       startupError =

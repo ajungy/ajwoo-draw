@@ -170,6 +170,7 @@ export function App({ autosave, openedFromLink, startupError }: AppProps) {
   return (
     <div className="shell">
       <Header actions={headerActions} />
+      <Toolbar />
       <ContextBar />
 
       <main className="stage" ref={stageRef}>
@@ -180,11 +181,6 @@ export function App({ autosave, openedFromLink, startupError }: AppProps) {
         />
         <TextEditorOverlay />
       </main>
-
-      {/* Only visible when the header has no room for the toolbar. */}
-      <div className="controls">
-        <Toolbar />
-      </div>
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />
 

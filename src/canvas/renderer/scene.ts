@@ -22,6 +22,8 @@ export interface SceneInput {
    *  the HTML text overlay is already showing it — drawing it twice reads as a
    *  ghosting/double-vision glitch. */
   editingId?: string | null;
+  /** Whole-canvas hand-drawn rendering mode — see drawObject.ts. */
+  scrappy?: boolean;
 }
 
 export interface SceneTheme {
@@ -59,12 +61,13 @@ export function renderScene(ctx: CanvasRenderingContext2D, input: SceneInput): v
 
   const lookup: Lookup = (id) => input.objects.find((o) => o.id === id);
   const editingId = input.editingId ?? null;
+  const scrappy = input.scrappy ?? false;
   // Culling keeps a large document cheap: only what intersects the viewport is
   // handed to the 2D context at all.
   for (const o of input.objects) {
-    if (rectsIntersect(objectBounds(o), viewport)) drawObject(ctx, o, lookup, editingId);
+    if (rectsIntersect(objectBounds(o), viewport)) drawObject(ctx, o, lookup, editingId, scrappy);
   }
-  if (input.ephemeral.draft) drawObject(ctx, input.ephemeral.draft, lookup, editingId);
+  if (input.ephemeral.draft) drawObject(ctx, input.ephemeral.draft, lookup, editingId, scrappy, true);
   ctx.restore();
 
   if (input.showOverlay) drawOverlay(ctx, input);

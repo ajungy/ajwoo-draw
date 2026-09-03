@@ -63,6 +63,10 @@ export class EditorStore {
   showGrid = true;
   /** Pen-tool modifier: dragging removes whole objects rather than drawing. */
   eraser = false;
+  /** Whole-canvas visual mode: every straight edge renders hand-drawn and
+   *  wobbly, and text switches to a handwritten face. A rendering choice, not
+   *  a document one — it never touches stored object data. */
+  scrappy = false;
   /** Objects held for paste. Kept in the app so paste works without clipboard permission. */
   clipboard: DrawingObject[] = [];
 
@@ -263,6 +267,11 @@ export class EditorStore {
 
   toggleGrid(): void {
     this.showGrid = !this.showGrid;
+    this.notify();
+  }
+
+  toggleScrappy(): void {
+    this.scrappy = !this.scrappy;
     this.notify();
   }
 

@@ -56,6 +56,7 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
       // Selection chrome would only get in the way of the text being edited.
       showOverlay: store.editingTextId === null,
       editingId: store.editingTextId,
+      scrappy: store.scrappy,
     });
   }, [store]);
 
@@ -192,5 +193,13 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
     };
   }, [store, controllerRef]);
 
-  return <canvas ref={canvasRef} className="canvas" data-tool={store.tool} aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="canvas"
+      data-tool={store.tool}
+      data-eraser={store.eraser || undefined}
+      aria-hidden="true"
+    />
+  );
 }

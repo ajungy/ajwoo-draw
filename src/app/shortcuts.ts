@@ -80,6 +80,10 @@ export function useShortcuts(
         return;
       }
       if (e.key === 'Escape') {
+        // Escape backs all the way out: whatever tool was active gives way to
+        // Select, and Select's own selection clears too — one key, one
+        // meaning, regardless of what state the canvas was in.
+        store.setTool('select');
         store.setSelection([]);
         return;
       }

@@ -45,6 +45,30 @@ export async function copyBlob(blob: Blob): Promise<void> {
   await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 }
 
+/**
+ * Copies text that takes real async work to produce (compressing a share
+ * link, say) without losing the click that authorized it.
+ *
+ * `navigator.clipboard.writeText` requires "recent user activation" — awaiting
+ * a slow async step (compression involves several `ReadableStream` round
+ * trips) before calling it can let that activation expire, and Chrome then
+ * refuses the write with no visible cause. `ClipboardItem` accepts a *promise*
+ * as its value and is allowed to wait for it while still honouring the
+ * gesture that started the call — so the compute function must be handed in
+ * un-awaited, and this must itself be called synchronously from the click
+ * handler, not after another `await`.
+ */
+export async function copyTextAsync(compute: () => Promise<string>): Promise<void> {
+  if (!canWriteClipboardImage()) {
+    // No promise-accepting ClipboardItem here; fall back to the plain path,
+    // which is only reliable when `compute` resolves quickly.
+    await copyText(await compute());
+    return;
+  }
+  const blobPromise = compute().then((text) => new Blob([text], { type: 'text/plain' }));
+  await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blobPromise })]);
+}
+
 export function canShareFiles(files: File[]): boolean {
   return typeof navigator !== 'undefined' && !!navigator.canShare?.({ files });
 }
