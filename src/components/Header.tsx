@@ -62,13 +62,6 @@ export function Header({ actions }: { actions: HeaderActions }) {
         />
 
         <div className="header__pages">
-          <IconButton
-            icon="chevron-left"
-            label="Previous page"
-            size="sm"
-            disabled={store.pageNumber === 1}
-            onClick={() => store.stepPage(-1)}
-          />
           <div className="page-indicator">
             <button
               type="button"
@@ -121,13 +114,6 @@ export function Header({ actions }: { actions: HeaderActions }) {
               </MenuItem>
             </Menu>
           </div>
-          <IconButton
-            icon="chevron-right"
-            label="Next page"
-            size="sm"
-            disabled={store.pageNumber === pageCount}
-            onClick={() => store.stepPage(1)}
-          />
         </div>
       </div>
 

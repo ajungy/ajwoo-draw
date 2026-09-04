@@ -18,7 +18,10 @@ export function createDocument(title = 'Untitled'): DrawingDocument {
     version: DOCUMENT_VERSION,
     id: newId(),
     title,
-    pages: [createPage()],
+    // Three pages to start, not one — most drawings end up multi-page, and
+    // it also puts the page navigator's controls in front of a new user
+    // immediately rather than only once they've made a second page.
+    pages: [createPage('Page 1'), createPage('Page 2'), createPage('Page 3')],
     createdAt: now,
     updatedAt: now,
   };

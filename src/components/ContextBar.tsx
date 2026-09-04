@@ -60,8 +60,8 @@ const ALIGNS: { value: TextAlign; label: string; icon: IconName }[] = [
  * What it shows is decided by the selection first and the active tool second,
  * so the controls on screen are always the ones that apply to what the user
  * is touching right now. Its internal layout follows one fixed pattern for
- * every mode, so the eye learns it once: the size/weight control is always at
- * the far left, colour pickers are always at the far right, and whatever is
+ * every mode, so the eye learns it once: colour pickers are always at the far
+ * left, the size/weight control is always at the far right, and whatever is
  * unique to that mode sits centred between them.
  */
 export function ContextBar() {
@@ -98,12 +98,12 @@ export function ContextBar() {
   let right: ReactNode = null;
 
   if (mode === 'pen') {
-    left = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
-    right = <Swatches label="Stroke colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
+    left = <Swatches label="Stroke colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
+    right = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
   }
 
   if (mode === 'line') {
-    left = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
+    left = <Swatches label="Line colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
     center = (
       <>
         <Segmented
@@ -145,20 +145,11 @@ export function ContextBar() {
         </BarGroup>
       </>
     );
-    right = <Swatches label="Line colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
+    right = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
   }
 
   if (mode === 'shape') {
-    left = <SizePicker label="Border thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
-    center = selected.length === 0 && (
-      <Segmented
-        label="Shape"
-        value={store.style.shapeKind}
-        options={SHAPES}
-        onChange={(shapeKind) => store.setStyle({ shapeKind })}
-      />
-    );
-    right = (
+    left = (
       <>
         <LabeledSwatches
           label="Stroke"
@@ -174,6 +165,15 @@ export function ContextBar() {
         />
       </>
     );
+    center = selected.length === 0 && (
+      <Segmented
+        label="Shape"
+        value={store.style.shapeKind}
+        options={SHAPES}
+        onChange={(shapeKind) => store.setStyle({ shapeKind })}
+      />
+    );
+    right = <SizePicker label="Border thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
   }
 
   if (mode === 'text') {

@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { EditorStore } from '../src/app/store';
+import { createDocument } from '../src/document/model/document';
 import { translateObject } from '../src/document/model/objects';
 import { pen, shape } from './factories';
+
+/** A single-page document, for tests asserting exact page counts across an
+ *  operation — independent of how many pages a brand-new document starts
+ *  with by default. */
+function singlePageDoc() {
+  const doc = createDocument();
+  return { ...doc, pages: [doc.pages[0]] };
+}
 
 describe('undo and redo', () => {
   it('undoes and redoes object creation', () => {
@@ -52,7 +61,7 @@ describe('undo and redo', () => {
   });
 
   it('undoes page operations', () => {
-    const store = new EditorStore();
+    const store = new EditorStore(singlePageDoc());
     store.addPage();
     expect(store.doc.pages).toHaveLength(2);
     store.undo();

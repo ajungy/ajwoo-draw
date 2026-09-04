@@ -10,29 +10,38 @@ import {
   renamePage,
 } from '../src/document/model/document';
 import { deserializeDocument, serializeDocument } from '../src/document/serialization/schema';
+import type { DrawingDocument } from '../src/document/model/types';
 import { line, pen, shape } from './factories';
 
+/** A fresh document trimmed to exactly one page — the baseline most of these
+ *  page-operation tests want, independent of how many pages a brand-new
+ *  document actually starts with. */
+function singlePageDoc(): DrawingDocument {
+  const doc = createDocument();
+  return { ...doc, pages: [doc.pages[0]] };
+}
+
 describe('document', () => {
-  it('starts with one page and a stable identity', () => {
+  it('starts with three pages and a stable identity', () => {
     const doc = createDocument();
-    expect(doc.pages).toHaveLength(1);
+    expect(doc.pages).toHaveLength(3);
     expect(doc.id).toBeTruthy();
-    expect(doc.pages[0].objects).toEqual([]);
+    expect(doc.pages.every((p) => p.objects.length === 0)).toBe(true);
   });
 
   it('adds a page after the current one', () => {
-    const doc = addPage(createDocument(), 0);
+    const doc = addPage(singlePageDoc(), 0);
     expect(doc.pages).toHaveLength(2);
     expect(new Set(doc.pages.map((p) => p.id)).size).toBe(2);
   });
 
   it('refuses to delete the last page', () => {
-    const doc = createDocument();
+    const doc = singlePageDoc();
     expect(deletePage(doc, doc.pages[0].id).pages).toHaveLength(1);
   });
 
   it('deletes a page when others remain', () => {
-    const doc = addPage(createDocument(), 0);
+    const doc = addPage(singlePageDoc(), 0);
     expect(deletePage(doc, doc.pages[0].id).pages).toHaveLength(1);
   });
 
@@ -52,7 +61,7 @@ describe('document', () => {
   });
 
   it('renames and reorders pages', () => {
-    let doc = addPage(createDocument(), 0);
+    let doc = addPage(singlePageDoc(), 0);
     doc = renamePage(doc, doc.pages[1].id, 'Flow');
     const moved = movePage(doc, doc.pages[1].id, 0);
     expect(moved.pages[0].name).toBe('Flow');

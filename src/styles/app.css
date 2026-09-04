@@ -183,11 +183,13 @@ body {
   --header-text-secondary: #A1A1A8;
   --header-border: #2E2E33;
   --header-hover: #232327;
-  --header-active-bg: #FFFFFF;
-  --header-active-text: #0E0E10;
-  /* The active state for small in-row toggles (line style, alignment, …) —
-     a light-grey fill instead of a full-strength invert, which read as too
-     heavy against the dark bars. */
+  /* The active state for every toggle in these bars — the current tool, a
+     pressed Connector/arrow-endpoint button, a picked line style — is one
+     subtle grey fill, not a full-strength white invert. A solid white block
+     read as too loud against the dark chrome once there were several such
+     toggles on screen at once. */
+  --header-active-bg: #3A3A40;
+  --header-active-text: #F2F2F3;
   --header-selected-bg: #3A3A40;
 }
 
@@ -630,9 +632,11 @@ body {
 @media (min-width: 900px) {
   .toolbar-row--inline.toolbar {
     display: flex;
-    /* Fills (and centres within) whatever space is left between the title
-       and the action cluster — the closest a flex header gets to "centred in
-       the middle of the bar" without the title's own width shifting it. */
+    /* Grows to absorb the space between the title/page area and the action
+       cluster — keeping Undo/Redo/Zoom/etc. pinned to the right — while its
+       own left-aligned content sits right where the title area ends. Without
+       this growing, the browser would instead grow `.header__left`, pushing
+       the tools away from the left edge along with it. */
     flex: 1 1 auto;
     min-width: 0;
     padding: 0;
@@ -653,14 +657,12 @@ body {
 .toolbar {
   display: flex;
   align-items: center;
-  /* `safe center`, not plain `center`: a centred flex container with
-     `overflow-x: auto` clips the scrollable range unevenly in every major
-     browser once content overflows — the "can't scroll to the last tool" bug.
-     The `safe` keyword keeps the tools centred whenever they fit and falls
-     back to start-alignment (fully scrollable) the moment they don't. */
-  justify-content: safe center;
+  /* Left-aligned, on purpose: the tools sit right after the page controls at
+     every width, in the header or in their own row, rather than drifting
+     toward the middle of a wide window. */
+  justify-content: flex-start;
   gap: var(--s-2);
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
