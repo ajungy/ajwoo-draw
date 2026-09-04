@@ -136,6 +136,13 @@ export function Header({ actions }: { actions: HeaderActions }) {
       <div className="header__actions">
         <IconButton icon="undo" label="Undo" size="sm" disabled={!store.canUndo} onClick={() => store.undo()} />
         <IconButton icon="redo" label="Redo" size="sm" disabled={!store.canRedo} onClick={() => store.redo()} />
+        <IconButton
+          icon="scrappy"
+          label="Scrappy: hand-drawn lines and handwritten text for everything on the canvas"
+          size="sm"
+          active={store.scrappy}
+          onClick={() => store.toggleScrappy()}
+        />
         <div className="header__zoom">
           <IconButton icon="zoom-out" label="Zoom out" size="sm" onClick={actions.zoomOut} />
           <ZoomLabel onReset={actions.resetZoom} />

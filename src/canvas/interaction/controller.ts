@@ -49,7 +49,18 @@ type Gesture =
   | { kind: 'pen'; object: DrawingObject & { type: 'pen' } }
   | { kind: 'line'; object: LineObject }
   | { kind: 'shape'; origin: Point; object: ShapeObject }
-  | { kind: 'move'; last: Point; originals: DrawingObject[]; moved: boolean; committed: boolean }
+  | {
+      kind: 'move';
+      last: Point;
+      originals: DrawingObject[];
+      moved: boolean;
+      committed: boolean;
+      /** Whether the target was already the (sole, non-shift) selection when
+       *  this gesture began — a tap that only just selected something should
+       *  leave its handles visible, not jump straight into editing it before
+       *  the person has even seen them. */
+      wasSelected: boolean;
+    }
   | {
       kind: 'resize';
       handle: HandleId;
@@ -423,7 +434,12 @@ export class CanvasController {
         this.commitShape(g.object, tapped);
         break;
       case 'move':
-        if (tapped && !g.moved) this.handleSelectTap(world, e.pointerType, e.shiftKey);
+        // A tap that only just selected this object leaves it selected, with
+        // its handles now visible — it does not also jump into editing it,
+        // which used to happen so fast (both within the same tap) that the
+        // handles never got a chance to be seen at all. Tapping something
+        // already selected still edits it, same as before.
+        if (tapped && !g.moved && g.wasSelected) this.handleSelectTap(world, e.pointerType, e.shiftKey);
         break;
       case 'resize':
       case 'rotate':
@@ -737,6 +753,7 @@ export class CanvasController {
 
     const target = this.downTarget;
     if (target) {
+      const wasSelected = !shiftKey && store.selection.length === 1 && store.selection[0] === target.id;
       if (shiftKey) {
         const has = store.selection.includes(target.id);
         store.setSelection(
@@ -745,7 +762,14 @@ export class CanvasController {
       } else if (!store.selection.includes(target.id)) {
         store.setSelection([target.id]);
       }
-      this.gesture = { kind: 'move', last: world, originals: store.selectedObjects(), moved: false, committed: false };
+      this.gesture = {
+        kind: 'move',
+        last: world,
+        originals: store.selectedObjects(),
+        moved: false,
+        committed: false,
+        wasSelected,
+      };
       return;
     }
 
@@ -753,7 +777,14 @@ export class CanvasController {
     // box still claims this point (its hollow interior, or the gap between
     // two multi-selected shapes) — grab it rather than starting a marquee.
     if (!shiftKey && store.selection.length > 0 && this.pointInSelectionBounds(world)) {
-      this.gesture = { kind: 'move', last: world, originals: selected, moved: false, committed: false };
+      this.gesture = {
+        kind: 'move',
+        last: world,
+        originals: selected,
+        moved: false,
+        committed: false,
+        wasSelected: true,
+      };
       return;
     }
 

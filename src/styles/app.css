@@ -616,70 +616,49 @@ body {
   border-bottom: var(--line) solid var(--header-border);
 }
 
-/* When the header has room, the toolbar and Scrappy toggle live inline in it
-   instead of taking a whole row of their own — one less strip of vertical
-   space spent on the same controls. */
-.toolbar-row--inline {
+/* When the header has room, the toolbar lives inline in it instead of taking
+   a whole row of its own — one less strip of vertical space spent on the same
+   controls. Specificity matches `.toolbar-row--standalone.toolbar` below: this
+   element carries both `.toolbar-row--inline` and `.toolbar`, and the plain
+   `.toolbar` rule (unconditional, later in the file) would otherwise beat a
+   single-class `display: none` regardless of which one this selector list
+   puts first. */
+.toolbar-row--inline.toolbar {
   display: none;
 }
 
 @media (min-width: 900px) {
-  .toolbar-row--inline {
+  .toolbar-row--inline.toolbar {
     display: flex;
-    flex: 0 1 auto;
+    /* Fills (and centres within) whatever space is left between the title
+       and the action cluster — the closest a flex header gets to "centred in
+       the middle of the bar" without the title's own width shifting it. */
+    flex: 1 1 auto;
     min-width: 0;
     padding: 0;
     border-bottom: none;
     background: transparent;
   }
 
-  .toolbar-row--standalone {
+  /* Higher specificity than the plain `.toolbar` rule below (which also
+     matches this element, since the standalone toolbar row and the
+     scrollable tool nav are the same element) — otherwise `.toolbar`'s own
+     `display: flex`, appearing later in the file, would win and this row
+     would never actually hide. */
+  .toolbar-row--standalone.toolbar {
     display: none;
   }
-}
-
-.scrappy-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--s-1);
-  flex: none;
-  height: var(--control-h-sm);
-  padding: 0 var(--s-4);
-  border: var(--line) solid var(--header-border);
-  border-radius: var(--r-full);
-  background: transparent;
-  color: var(--header-text-secondary);
-  font: inherit;
-  font-size: var(--t-caption-size);
-  font-weight: var(--fw-medium);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--d-fast) var(--e-standard), color var(--d-fast) var(--e-standard);
-}
-
-@media (any-hover: hover) {
-  .scrappy-toggle:hover {
-    background: var(--header-hover);
-    color: var(--header-text);
-  }
-}
-
-.scrappy-toggle[aria-pressed='true'] {
-  background: var(--header-active-bg);
-  border-color: transparent;
-  color: var(--header-active-text);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  /* Not `center`: a centred flex container with `overflow-x: auto` clips the
-     scrollable range unevenly in every major browser — content past the
-     centred midpoint becomes unreachable by scrolling, which is exactly the
-     "can't scroll to the last tool" bug on a narrow/mobile toolbar. Left
-     alignment gives up nothing when everything fits, and stays fully
-     scrollable when it doesn't. */
-  justify-content: flex-start;
+  /* `safe center`, not plain `center`: a centred flex container with
+     `overflow-x: auto` clips the scrollable range unevenly in every major
+     browser once content overflows — the "can't scroll to the last tool" bug.
+     The `safe` keyword keeps the tools centred whenever they fit and falls
+     back to start-alignment (fully scrollable) the moment they don't. */
+  justify-content: safe center;
   gap: var(--s-2);
   flex: 1 1 auto;
   min-width: 0;
@@ -1125,30 +1104,12 @@ body {
     gap: var(--s-2);
     padding-inline: var(--s-2);
   }
-
-  .toolbar {
-    justify-content: flex-start;
-  }
 }
 
 @media (max-width: 420px) {
   /* Pinch and wheel zoom still work without the buttons; the percentage stays
      visible (and still resets to 100% on tap) so zoom is never a mystery. */
   .header__zoom .icon-button {
-    display: none;
-  }
-}
-
-@media (max-width: 380px) {
-  /* The icon alone still says "sketchy toggle" once the pill has been used a
-     couple of times; the word is what a first-time visitor needs. */
-  .scrappy-toggle {
-    padding: 0;
-    width: var(--control-h-sm);
-    justify-content: center;
-  }
-
-  .scrappy-toggle span {
     display: none;
   }
 }

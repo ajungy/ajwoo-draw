@@ -73,7 +73,10 @@ export function TextEditorOverlay() {
   const fontSize = isShape ? (editable as ShapeObject).fontSize : (editable as TextObject).fontSize;
   const zoom = store.camera.zoom;
   const scaled = fontSize * zoom;
-  const font = isShape ? 'sans' : (editable as TextObject).fontFamily;
+  // Scrappy mode renders every label in the handwritten face on the canvas —
+  // the editor has to match while typing, or the text visibly changes font
+  // the moment it's committed and the overlay closes.
+  const font = store.scrappy ? 'hand' : isShape ? 'sans' : (editable as TextObject).fontFamily;
   const color = isShape ? (editable as ShapeObject).textColor : (editable as TextObject).color;
 
   const commit = (value: string, addHistoryStep: boolean) => {
