@@ -23,11 +23,12 @@
   --canvas-accent-soft: rgba(37, 99, 235, 0.12);
   --canvas-handle: #FFFFFF;
 
-  /* 4px of clearance above and below a small control, on every side — not a
-     fixed pixel value, so it stays a 4px gap (not a growing one) at the
-     larger touch-target sizes the breakpoints below scale `--control-h-sm`
-     up to. */
-  --header-h: calc(var(--control-h-sm) + 8px);
+  /* 2px of clearance above and below a small control — 4px total, as tight
+     as the row gets without touching the control itself — derived from
+     `--control-h-sm` rather than a fixed pixel value, so it stays a 4px gap
+     (not a growing one) at the larger touch-target sizes the breakpoints
+     below scale that control size up to. */
+  --header-h: calc(var(--control-h-sm) + 4px);
 }
 
 * {
@@ -214,8 +215,8 @@ body {
   align-items: center;
   gap: var(--s-4);
   min-height: var(--header-h);
-  padding: var(--s-2) var(--s-4);
-  padding-top: max(var(--s-2), var(--safe-top));
+  padding: var(--s-1) var(--s-4);
+  padding-top: max(var(--s-1), var(--safe-top));
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
   border-bottom: var(--line) solid var(--header-border);
@@ -624,7 +625,7 @@ body {
      strip of chrome rather than the tool row looking like an afterthought
      tacked on below a taller header. */
   min-height: var(--header-h);
-  padding: var(--s-2) var(--s-4);
+  padding: var(--s-1) var(--s-4);
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
   border-bottom: var(--line) solid var(--header-border);
@@ -697,17 +698,23 @@ body {
   display: flex;
   align-items: center;
   gap: var(--s-4);
-  /* Same height as the header and the tool row, always — even with nothing
-     to show (`--empty`) — so the canvas below never shifts as a selection
-     is made or cleared. Only the row's *content* animates in. */
   min-height: var(--header-h);
-  padding: var(--s-2) var(--s-4);
+  padding: var(--s-1) var(--s-4);
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
   border-bottom: var(--line) solid var(--header-border);
+  overflow: hidden;
+  /* Always mounted (see ContextBar.tsx) so there's something to animate
+     between full height and nothing — collapsing to `min-height: 0` reads as
+     the row sliding up into the header on the way out, and back down out of
+     it on the way back in. */
+  transition: min-height var(--d-base) var(--e-standard), padding-block var(--d-base) var(--e-standard);
 }
 
 .context-bar--empty {
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   border-bottom-color: transparent;
 }
 
@@ -759,6 +766,25 @@ body {
   flex: 1 1 auto;
   justify-content: center;
   gap: var(--s-4);
+}
+
+@media (min-width: 900px) {
+  /* Centred on the row's own full width via absolute positioning, same as
+     the header's inline toolbar — a flex `justify-content: center` can only
+     centre within whatever space the left and right sections leave behind,
+     which drifts off-centre as either one changes width. */
+  .context-bar__scroll {
+    position: relative;
+  }
+
+  .context-bar__section--center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    flex: 0 1 auto;
+    max-width: min(55%, 480px);
+  }
 }
 
 .context-bar__fixed {

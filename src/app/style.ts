@@ -37,8 +37,8 @@ export const STROKE_SWATCHES = [
   { name: 'Transparent', value: null },
 ] as const;
 
-export const STROKE_SIZES = [2, 4, 8, 16] as const;
-export const FONT_SIZES = [14, 20, 28, 40] as const;
+export const STROKE_SIZES = [2, 4, 8] as const;
+export const FONT_SIZES = [20, 28, 40] as const;
 
 /** Style the next created object inherits. Persisted with preferences. */
 export interface StyleState {

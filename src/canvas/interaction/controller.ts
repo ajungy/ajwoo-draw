@@ -663,12 +663,18 @@ export class CanvasController {
     const final = structuredClone(object);
     if (tapped || final.frame.w < 8 || final.frame.h < 8) {
       // A tap drops a default-sized shape centred on the tap — one gesture
-      // instead of a drag, which matters a lot on a phone.
+      // instead of a drag, which matters a lot on a phone. Square (or
+      // circular) by default for every kind but Arrow, which is inherently
+      // wide — a squished rectangle-ish default was exactly what made a
+      // tapped star, triangle, or heart look wrong next to its own toolbar
+      // icon, which is drawn on a square canvas.
+      const w = DEFAULT_SHAPE_SIZE;
+      const h = object.kind === 'arrow' ? DEFAULT_SHAPE_SIZE * 0.66 : DEFAULT_SHAPE_SIZE;
       final.frame = {
-        x: object.frame.x - DEFAULT_SHAPE_SIZE / 2,
-        y: object.frame.y - DEFAULT_SHAPE_SIZE / 2,
-        w: DEFAULT_SHAPE_SIZE,
-        h: DEFAULT_SHAPE_SIZE * 0.66,
+        x: object.frame.x - w / 2,
+        y: object.frame.y - h / 2,
+        w,
+        h,
       };
     }
     this.store.addObject(final);

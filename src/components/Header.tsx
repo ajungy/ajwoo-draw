@@ -1,4 +1,4 @@
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useEditor, useStore } from '../app/useStore';
 import type { EditorStore } from '../app/store';
 import { IconButton } from '../ui/IconButton';
@@ -23,12 +23,51 @@ export interface HeaderActions {
   deletePage: () => void;
 }
 
+/** One offscreen canvas, reused for every measurement rather than allocated
+ *  per keystroke — measuring text width is the one thing a canvas 2D context
+ *  does without touching layout at all. */
+let measureCtx: CanvasRenderingContext2D | null = null;
+function textWidth(text: string, font: string): number {
+  if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
+  if (!measureCtx) return 0;
+  measureCtx.font = font;
+  return measureCtx.measureText(text).width;
+}
+
 export function Header({ actions }: { actions: HeaderActions }) {
   const store = useEditor();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pagesOpen, setPagesOpen] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const pageCount = store.doc.pages.length;
+
+  // Sized to the pixel width of its own text — an input's character-count
+  // `size` only approximates that for a proportional font, leaving a sliver
+  // of unused space after most titles. Re-measured on every change, plus
+  // once after the title font is actually available (a late-loading webfont
+  // can widen or narrow it after the first paint).
+  useLayoutEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const resize = () => {
+      const cs = getComputedStyle(el);
+      // `box-sizing: border-box` makes the input's own padding eat into
+      // whatever width is set here, so it has to be added back — otherwise
+      // the box comes out narrower than the text it's meant to fit and the
+      // last character or two get clipped under the ellipsis.
+      const horizontalChrome = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      // A couple of pixels so the caret has somewhere to sit after the last
+      // character rather than immediately clipping it.
+      const width = Math.max(24, textWidth(store.doc.title, cs.font) + horizontalChrome + 2);
+      el.style.width = `${width}px`;
+    };
+    resize();
+    // The very first measurement can land before the title's own webfont has
+    // finished loading, using the fallback face's (usually narrower) metrics
+    // — this re-measures once the real font is actually in, so the box
+    // doesn't stay a hair too narrow and clip the last character or two.
+    document.fonts?.ready.then(resize);
+  }, [store.doc.title]);
 
   return (
     <header className="header">
@@ -49,11 +88,6 @@ export function Header({ actions }: { actions: HeaderActions }) {
           className="title-input"
           aria-label="Drawing name"
           value={store.doc.title}
-          // A fixed `size` in characters, not a flex-grown width, so the field
-          // hugs its text instead of leaving empty space after a short title —
-          // clamped so a long title still truncates rather than pushing the
-          // page controls off screen.
-          size={Math.min(22, Math.max(4, store.doc.title.length + 1))}
           onChange={(e) => store.setTitle(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation();
@@ -122,13 +156,6 @@ export function Header({ actions }: { actions: HeaderActions }) {
       <div className="header__actions">
         <IconButton icon="undo" label="Undo" size="sm" disabled={!store.canUndo} onClick={() => store.undo()} />
         <IconButton icon="redo" label="Redo" size="sm" disabled={!store.canRedo} onClick={() => store.redo()} />
-        <IconButton
-          icon="scrappy"
-          label="Scrappy: hand-drawn lines and handwritten text for everything on the canvas"
-          size="sm"
-          active={store.scrappy}
-          onClick={() => store.toggleScrappy()}
-        />
         <div className="header__zoom">
           <IconButton icon="zoom-out" label="Zoom out" size="sm" onClick={actions.zoomOut} />
           <ZoomLabel onReset={actions.resetZoom} />
@@ -159,6 +186,12 @@ export function Header({ actions }: { actions: HeaderActions }) {
             </MenuItem>
             <MenuItem onSelect={() => run(setMenuOpen, () => store.toggleGrid())}>
               {store.showGrid ? 'Hide grid' : 'Show grid'}
+            </MenuItem>
+            <MenuItem
+              onSelect={() => store.toggleScrappy()}
+              hint={store.scrappy ? 'On' : 'Off'}
+            >
+              Scrappy
             </MenuItem>
             <MenuSeparator />
             <MenuItem onSelect={() => run(setMenuOpen, actions.openFile)}>Open draw file…</MenuItem>

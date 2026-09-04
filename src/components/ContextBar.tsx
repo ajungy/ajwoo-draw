@@ -70,18 +70,14 @@ export function ContextBar() {
   const store = useEditor();
   const selected = store.selectedObjects();
   const mode = contextMode(selected, store.tool);
-  if (!mode) {
-    // Select (with nothing selected) and Hand never have anything to put
-    // here — the row is dropped entirely rather than shown empty, so those
-    // two tools give the canvas back the extra row of height.
-    if (store.tool === 'select' || store.tool === 'hand') return null;
-    // Every other empty case (the Eraser, mid-selection-change) still mounts
-    // the row at its usual height rather than collapsing to zero — otherwise
-    // the canvas grows and shrinks by a whole row's height as a selection is
-    // made or cleared, which reads as the page lurching up and down rather
-    // than a panel opening.
-    return <div className="context-bar context-bar--empty" aria-hidden="true" />;
-  }
+  // With nothing to show — Select or Hand with no selection, the Eraser, the
+  // instant between clearing one selection and the next — the row still
+  // mounts (so its height-collapse animation has something to animate from),
+  // it just collapses to nothing rather than showing empty. See the
+  // `.context-bar` / `.context-bar--empty` transition in app.css: it slides
+  // up into the header when it empties out and slides back down when it next
+  // has something to show.
+  if (!mode) return <div className="context-bar context-bar--empty" aria-hidden="true" />;
 
   /** Applies a style to the selection when there is one, and to the next object otherwise. */
   const apply = (patch: Partial<Record<string, unknown>>, toObject: (o: DrawingObject) => DrawingObject) => {
@@ -164,8 +160,8 @@ export function ContextBar() {
   if (mode === 'shape') {
     left = (
       <>
-        <LabeledSwatches
-          label="Stroke"
+        <Swatches
+          label="Stroke colour"
           value={store.style.strokeColor}
           colors={STROKE_SWATCHES}
           onChange={setStrokeColor}
@@ -190,17 +186,7 @@ export function ContextBar() {
   }
 
   if (mode === 'text') {
-    left = (
-      <SizePicker
-        label="Font size"
-        value={store.style.fontSize}
-        sizes={FONT_SIZES}
-        render="text"
-        onChange={(fontSize) =>
-          apply({ fontSize }, (o) => (o.type === 'text' ? { ...o, fontSize } : o.type === 'shape' ? { ...o, fontSize } : o))
-        }
-      />
-    );
+    left = <Swatches label="Text colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
     center = (
       <>
         <Segmented
@@ -241,7 +227,17 @@ export function ContextBar() {
         />
       </>
     );
-    right = <Swatches label="Text colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
+    right = (
+      <SizePicker
+        label="Font size"
+        value={store.style.fontSize}
+        sizes={FONT_SIZES}
+        render="text"
+        onChange={(fontSize) =>
+          apply({ fontSize }, (o) => (o.type === 'text' ? { ...o, fontSize } : o.type === 'shape' ? { ...o, fontSize } : o))
+        }
+      />
+    );
   }
 
   return (

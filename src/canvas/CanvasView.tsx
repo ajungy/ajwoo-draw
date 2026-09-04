@@ -86,9 +86,14 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
       // Cap the ratio: a 4x phone screen triples fill cost for no visible gain.
       const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       sizeRef.current = { width: rect.width, height: rect.height, dpr };
+      // Setting `width`/`height` clears the bitmap to transparent black
+      // immediately — a visible flash on every resize (including the tool
+      // row or contextual bar changing height) if the repaint waits for the
+      // next animation frame like a normal invalidation does. Painting
+      // synchronously, in the same tick as the resize, closes that gap.
       canvas.width = Math.max(1, Math.round(rect.width * dpr));
       canvas.height = Math.max(1, Math.round(rect.height * dpr));
-      invalidate();
+      draw();
     };
 
     resize();
@@ -106,7 +111,7 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
       observer.disconnect();
       scheme.removeEventListener('change', onScheme);
     };
-  }, [invalidate]);
+  }, [invalidate, draw]);
 
   useEffect(() => store.subscribeRender(invalidate), [store, invalidate]);
   useEffect(() => store.subscribeApp(invalidate), [store, invalidate]);
