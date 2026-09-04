@@ -60,8 +60,11 @@ export async function copyBlob(blob: Blob): Promise<void> {
  */
 export async function copyTextAsync(compute: () => Promise<string>): Promise<void> {
   if (!canWriteClipboardImage()) {
-    // No promise-accepting ClipboardItem here; fall back to the plain path,
-    // which is only reliable when `compute` resolves quickly.
+    // No promise-accepting ClipboardItem here. Callers are expected to have
+    // already finished any slow work and hand in a `compute` that resolves
+    // immediately — the plain path below has no way to wait out an
+    // activation window, so it is only reliable when there is nothing left
+    // to wait for.
     await copyText(await compute());
     return;
   }

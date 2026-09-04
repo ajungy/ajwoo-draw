@@ -103,7 +103,7 @@ function drawShape(ctx: CanvasRenderingContext2D, o: ShapeObject, skipLabel: boo
     ctx.fillStyle = o.fill;
     ctx.fill(fillPath);
   }
-  if (o.size > 0) {
+  if (o.size > 0 && o.stroke) {
     ctx.strokeStyle = o.stroke;
     ctx.lineWidth = o.size;
     ctx.lineJoin = 'round';

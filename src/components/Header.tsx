@@ -4,6 +4,7 @@ import type { EditorStore } from '../app/store';
 import { IconButton } from '../ui/IconButton';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { Icon } from '../ui/Icon';
+import { Toolbar } from './Toolbar';
 
 export interface HeaderActions {
   share: () => void;
@@ -48,6 +49,11 @@ export function Header({ actions }: { actions: HeaderActions }) {
           className="title-input"
           aria-label="Drawing name"
           value={store.doc.title}
+          // A fixed `size` in characters, not a flex-grown width, so the field
+          // hugs its text instead of leaving empty space after a short title —
+          // clamped so a long title still truncates rather than pushing the
+          // page controls off screen.
+          size={Math.min(22, Math.max(4, store.doc.title.length + 1))}
           onChange={(e) => store.setTitle(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation();
@@ -124,6 +130,8 @@ export function Header({ actions }: { actions: HeaderActions }) {
           />
         </div>
       </div>
+
+      <Toolbar inHeader />
 
       <div className="header__actions">
         <IconButton icon="undo" label="Undo" size="sm" disabled={!store.canUndo} onClick={() => store.undo()} />

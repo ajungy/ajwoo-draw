@@ -144,7 +144,7 @@ function parseObject(v: unknown, z: number): DrawingObject | null {
         frame: rect(v.frame),
         rotation: num(v.rotation),
         fill: nullableColor(v.fill),
-        stroke: color(v.stroke),
+        stroke: nullableColor(v.stroke),
         size: Math.min(200, Math.max(0, num(v.size, 4))),
         text: str(v.text),
         textColor: color(v.textColor),

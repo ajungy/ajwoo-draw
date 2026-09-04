@@ -61,8 +61,6 @@ export class EditorStore {
   saveStatus: SaveStatus = 'idle';
   /** A dotted grid is the default surface texture; the user can turn it off. */
   showGrid = true;
-  /** Pen-tool modifier: dragging removes whole objects rather than drawing. */
-  eraser = false;
   /** Whole-canvas visual mode: every straight edge renders hand-drawn and
    *  wobbly, and text switches to a handwritten face. A rendering choice, not
    *  a document one — it never touches stored object data. */
@@ -243,9 +241,6 @@ export class EditorStore {
       // new tool has nothing to do with.
       this.selection = [];
     }
-    // The eraser is a pen mode, not a sticky app mode: leaving the pen and
-    // coming back must not silently refuse to draw.
-    if (tool !== 'pen') this.eraser = false;
     this.notify();
   }
 
@@ -257,11 +252,6 @@ export class EditorStore {
   setSaveStatus(status: SaveStatus): void {
     if (this.saveStatus === status) return;
     this.saveStatus = status;
-    this.notify();
-  }
-
-  toggleEraser(): void {
-    this.eraser = !this.eraser;
     this.notify();
   }
 

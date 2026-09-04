@@ -97,7 +97,7 @@ function shapeToSvg(o: ShapeObject, scrappy: boolean): string {
   // visible sliver of unfilled paper between fill and stroke.
   const fillShape = `<path d="${shapePathData(o.kind, o.frame)}" fill="${fill}" stroke="none"/>`;
   const strokeShape =
-    o.size > 0
+    o.size > 0 && o.stroke
       ? scrappy
         ? `<path d="${sketchPolyline(sketchVertices(o.kind, o.frame), seedFromId(o.id), shapeWobbleAmplitude(o.frame.w, o.frame.h), true)}" ` +
           `fill="none" stroke="${o.stroke}" stroke-width="${n(o.size)}" stroke-linecap="round" stroke-linejoin="round"/>`

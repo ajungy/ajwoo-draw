@@ -87,8 +87,20 @@ export class ShareTooLargeError extends Error {
   }
 }
 
-const hasCompression = (): boolean =>
-  typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
+// Not just a feature-detect on the constructors existing — some older
+// implementations have `CompressionStream` but throw on the `'deflate-raw'`
+// format specifically. Actually constructing (and immediately discarding) one
+// is the only reliable way to know encoding won't blow up mid-share.
+const hasCompression = (): boolean => {
+  if (typeof CompressionStream === 'undefined' || typeof DecompressionStream === 'undefined') return false;
+  try {
+    new CompressionStream('deflate-raw');
+    new DecompressionStream('deflate-raw');
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';

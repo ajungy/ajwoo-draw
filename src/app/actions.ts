@@ -97,11 +97,12 @@ export async function shareDrawing(
   store: EditorStore,
   onExportSvg: () => void,
 ): Promise<ActionResult> {
-  const compute = () => buildShareUrl(store.doc, location.href);
-
+  // Built once and reused by every fallback below — recomputing (re-running
+  // compression) on each attempt would also reopen the activation-expiry
+  // window the `ClipboardItem`-promise trick exists to avoid.
+  let url: string;
   try {
-    await copyTextAsync(compute);
-    return ok('Share link copied — paste it anywhere.');
+    url = await buildShareUrl(store.doc, location.href);
   } catch (error) {
     if (error instanceof ShareTooLargeError) {
       return fail('This drawing is too large for a link-only share.', {
@@ -109,6 +110,14 @@ export async function shareDrawing(
         run: onExportSvg,
       });
     }
+    const reason = error instanceof Error ? error.message : 'an unknown error';
+    return fail(`Couldn't prepare a share link: ${reason}`);
+  }
+
+  try {
+    await copyTextAsync(async () => url);
+    return ok('Share link copied — paste it anywhere.');
+  } catch {
     // Clipboard access itself failed (permission denied, insecure context,
     // browser without any clipboard-write API) — fall through to other paths
     // rather than surfacing that as the final word.
@@ -116,16 +125,9 @@ export async function shareDrawing(
 
   if (canShare()) {
     try {
-      const url = await compute();
       await navigator.share({ title: store.doc.title, url });
       return { text: 'Shared.', tone: 'neutral' };
     } catch (error) {
-      if (error instanceof ShareTooLargeError) {
-        return fail('This drawing is too large for a link-only share.', {
-          label: 'Export SVG',
-          run: onExportSvg,
-        });
-      }
       // A cancelled share sheet is not a failure worth reporting.
       if (error instanceof DOMException && error.name === 'AbortError') {
         return { text: '', tone: 'neutral' };
@@ -133,7 +135,15 @@ export async function shareDrawing(
     }
   }
 
-  return fail('Copy the link from the address bar — clipboard access was refused.');
+  // The link is already built — a retry here is a fresh click, which carries
+  // its own "recent user activation", so a plain synchronous copy (no async
+  // work in between) succeeds even when the automatic attempt above did not.
+  return fail("Couldn't copy the share link automatically.", {
+    label: 'Copy link',
+    run: () => {
+      void copyText(url);
+    },
+  });
 }
 
 export async function sharePng(store: EditorStore): Promise<ActionResult> {

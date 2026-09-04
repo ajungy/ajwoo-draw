@@ -28,7 +28,7 @@ export interface Rect {
   h: number;
 }
 
-export type ToolId = 'hand' | 'pen' | 'line' | 'shape' | 'text' | 'select';
+export type ToolId = 'hand' | 'pen' | 'line' | 'shape' | 'text' | 'eraser' | 'select';
 
 export type ShapeKind =
   | 'rectangle'
@@ -92,7 +92,7 @@ export interface ShapeObject extends BaseObject {
   /** Radians, about the frame centre. */
   rotation: number;
   fill: string | null;
-  stroke: string;
+  stroke: string | null;
   size: number;
   /** Label drawn centred inside the shape. Empty string means no label. */
   text: string;

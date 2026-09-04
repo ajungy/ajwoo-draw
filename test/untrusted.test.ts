@@ -41,7 +41,10 @@ describe('untrusted document data', () => {
         },
       ]),
     );
-    expect(doc.pages[0].objects[0]).toMatchObject({ stroke: '#18181B', fill: null });
+    // Stroke is nullable now (a shape can have a transparent outline), so an
+    // invalid value falls back to null exactly like fill does — never to a
+    // guessed default colour.
+    expect(doc.pages[0].objects[0]).toMatchObject({ stroke: null, fill: null });
   });
 
   it('coerces out-of-range numbers rather than trusting them', () => {

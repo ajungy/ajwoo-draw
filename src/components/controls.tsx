@@ -64,6 +64,28 @@ export function Swatches({
   );
 }
 
+/** A `Swatches` group with its category name written out ("Stroke:", "Fill:")
+ *  instead of only living in the `aria-label` — the two swatch rows read as
+ *  distinct categories at a glance, not just two unlabelled rows of colour. */
+export function LabeledSwatches({
+  label,
+  value,
+  colors,
+  onChange,
+}: {
+  label: string;
+  value: string | null;
+  colors: readonly { name: string; value: string | null }[];
+  onChange: (value: string | null) => void;
+}) {
+  return (
+    <div className="swatch-group">
+      <span className="swatch-group__label">{label}:</span>
+      <Swatches label={label} value={value} colors={colors} onChange={onChange} />
+    </div>
+  );
+}
+
 /** Stroke/font weight picker, drawn as the thing it controls. */
 export function SizePicker({
   label,

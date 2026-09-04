@@ -198,7 +198,6 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
       ref={canvasRef}
       className="canvas"
       data-tool={store.tool}
-      data-eraser={store.eraser || undefined}
       aria-hidden="true"
     />
   );

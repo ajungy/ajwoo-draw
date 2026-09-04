@@ -253,8 +253,10 @@ export class CanvasController {
 
     switch (store.tool) {
       case 'pen':
-        if (store.eraser) this.beginErase(world, e.pointerType);
-        else this.beginPen(world, e.pressure, e.pointerType);
+        this.beginPen(world, e.pressure, e.pointerType);
+        break;
+      case 'eraser':
+        this.beginErase(world, e.pointerType);
         break;
       case 'line':
         this.beginLine(world);
@@ -624,7 +626,7 @@ export class CanvasController {
       frame: { x: world.x, y: world.y, w: 1, h: 1 },
       rotation: 0,
       fill: store.style.shapeKind === 'note' && store.style.fill === null ? '#FEF3C7' : store.style.fill,
-      stroke: store.style.color,
+      stroke: store.style.strokeColor,
       size: store.style.size,
       text: '',
       textColor: store.style.color,

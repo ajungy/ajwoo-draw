@@ -21,13 +21,20 @@ export const PALETTE = [
 ] as const;
 
 export const FILL_SWATCHES = [
-  { name: 'None', value: null },
   { name: 'White', value: '#FFFFFF' },
   { name: 'Grey', value: '#E4E4E7' },
   { name: 'Blue', value: '#DBEAFE' },
   { name: 'Green', value: '#DCFCE7' },
   { name: 'Amber', value: '#FEF3C7' },
   { name: 'Red', value: '#FEE2E2' },
+  { name: 'Transparent', value: null },
+] as const;
+
+/** Same hues as `PALETTE`, plus a transparent option — last, matching
+ *  `FILL_SWATCHES` — for a shape drawn with no outline at all. */
+export const STROKE_SWATCHES = [
+  ...PALETTE.map((c) => ({ name: c.name, value: c.value as string | null })),
+  { name: 'Transparent', value: null },
 ] as const;
 
 export const STROKE_SIZES = [2, 4, 8, 16] as const;
@@ -38,6 +45,9 @@ export interface StyleState {
   color: string;
   size: number;
   fill: string | null;
+  /** Shape outline colour, kept separate from `color` (which pen/line/text
+   *  labels all share) since a shape's stroke alone can go transparent. */
+  strokeColor: string | null;
   lineStyle: LineStyle;
   startArrow: ArrowHead;
   endArrow: ArrowHead;
@@ -55,6 +65,7 @@ export const DEFAULT_STYLE: StyleState = {
   color: PALETTE[0].value,
   size: 4,
   fill: null,
+  strokeColor: PALETTE[0].value,
   lineStyle: 'solid',
   startArrow: 'none',
   endArrow: 'arrow',

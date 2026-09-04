@@ -90,12 +90,25 @@ export function sketchPolyline(points: Point[], seed: number, amplitude: number,
   return d.trim();
 }
 
-/** A subtle per-point jitter for pen strokes — perfect-freehand already reads
- *  as hand-drawn, so this only needs to rough up the edge slightly further,
- *  not reinvent it. Displacement shrinks for thin strokes. */
+/** A visibly hand-drawn wobble for pen strokes, scaled off the stroke's own
+ *  extent — like `shapeWobbleAmplitude` — rather than its width, so a small
+ *  doodle and a whiteboard-sized scribble both read as clearly sketchy
+ *  instead of the wobble disappearing into a thick line or overwhelming a
+ *  thin one. */
 export function jitterStrokePoints<P extends Point>(points: P[], seed: number, strokeSize: number): P[] {
   const rand = rngFrom(seed);
-  const amplitude = Math.min(1.6, Math.max(0.4, strokeSize / 10));
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  const extent = Math.max(1, Math.min(maxX - minX, maxY - minY));
+  const amplitude = Math.max(0.6, Math.min(4.5, extent * 0.05, strokeSize * 0.9));
   return points.map((p) => ({
     ...p,
     x: p.x + (rand() - 0.5) * 2 * amplitude,
@@ -127,7 +140,12 @@ export function sketchVertices(kind: ShapeKind, frame: Rect): Point[] {
     case 'ellipse': {
       const rx = w / 2;
       const ry = h / 2;
-      const steps = 28;
+      // Fewer vertices than the clean renderer's own ellipse approximation:
+      // each vertex gets an independently-bowed double stroke, so a
+      // high-vertex-count circle turned every one of those into visible
+      // high-frequency noise — "jittery" rather than hand-drawn. Sixteen is
+      // still smooth enough to read as round once wobbled.
+      const steps = 16;
       return Array.from({ length: steps }, (_, i) => {
         const a = (i / steps) * Math.PI * 2;
         return { x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry };

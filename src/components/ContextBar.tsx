@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { useEditor } from '../app/useStore';
-import { FILL_SWATCHES, FONT_SIZES, PALETTE, STROKE_SIZES } from '../app/style';
+import { FILL_SWATCHES, FONT_SIZES, PALETTE, STROKE_SIZES, STROKE_SWATCHES } from '../app/style';
 import { RESOLVED_FONT_STACKS } from '../canvas/text';
 import { IconButton } from '../ui/IconButton';
 import type { IconName } from '../ui/Icon';
-import { BarGroup, Segmented, SizePicker, Swatches } from './controls';
+import { BarGroup, LabeledSwatches, Segmented, SizePicker, Swatches } from './controls';
 import type {
   DrawingObject,
   FontFamily,
@@ -86,21 +86,19 @@ export function ContextBar() {
   const setSize = (size: number) =>
     apply({ size }, (o) => (o.type === 'text' ? o : { ...o, size }));
 
+  /** The shape stroke swatch: separate from `color` so it alone can go
+   *  transparent without taking the label text colour with it. */
+  const setStrokeColor = (stroke: string | null) =>
+    apply({ strokeColor: stroke }, (o) =>
+      o.type === 'shape' ? { ...o, stroke, textColor: stroke ?? o.textColor } : o,
+    );
+
   let left: ReactNode = null;
   let center: ReactNode = null;
   let right: ReactNode = null;
 
   if (mode === 'pen') {
     left = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
-    center = selected.length === 0 && (
-      <IconButton
-        icon="eraser"
-        label="Eraser"
-        size="sm"
-        active={store.eraser}
-        onClick={() => store.toggleEraser()}
-      />
-    );
     right = <Swatches label="Stroke colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
   }
 
@@ -162,13 +160,18 @@ export function ContextBar() {
     );
     right = (
       <>
-        <Swatches
+        <LabeledSwatches
+          label="Stroke"
+          value={store.style.strokeColor}
+          colors={STROKE_SWATCHES}
+          onChange={setStrokeColor}
+        />
+        <LabeledSwatches
           label="Fill"
           value={store.style.fill}
           colors={FILL_SWATCHES}
           onChange={(fill) => apply({ fill }, (o) => (o.type === 'shape' ? { ...o, fill } : o))}
         />
-        <Swatches label="Border colour" value={store.style.color} colors={PALETTE} onChange={setColor} />
       </>
     );
   }

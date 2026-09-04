@@ -10,6 +10,7 @@ const TOOL_KEYS: Record<string, ToolId> = {
   l: 'line',
   s: 'shape',
   t: 'text',
+  e: 'eraser',
 };
 
 /** True when focus is in a field, where a bare letter is text, not a shortcut. */

@@ -11,18 +11,20 @@ const TOOLS: { id: ToolId; icon: IconName; label: string; key: string }[] = [
   { id: 'line', icon: 'line', label: 'Line', key: 'L' },
   { id: 'shape', icon: 'shape', label: 'Shape', key: 'S' },
   { id: 'text', icon: 'text', label: 'Text', key: 'T' },
+  { id: 'eraser', icon: 'eraser', label: 'Eraser', key: 'E' },
 ];
 
 /**
- * The tool row. It has a fixed place — directly under the header, above the
- * contextual row — at every window size; it never migrates into the header or
- * down to the bottom of the screen, so a person's hand always knows where it
+ * The tool row: Scrappy toggle plus the tool buttons. On a wide-enough header
+ * it lives inline in the header bar (`inHeader`); otherwise it gets its own
+ * row directly underneath, above the contextual row. Either way it never
+ * drops to the bottom of the screen, so a person's hand always knows where it
  * is.
  */
-export function Toolbar() {
+export function Toolbar({ inHeader = false }: { inHeader?: boolean }) {
   const store = useEditor();
   return (
-    <div className="toolbar-row">
+    <div className={inHeader ? 'toolbar-row toolbar-row--inline' : 'toolbar-row toolbar-row--standalone'}>
       <button
         type="button"
         className="scrappy-toggle"
