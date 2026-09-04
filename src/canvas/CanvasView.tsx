@@ -53,8 +53,11 @@ export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps
       ephemeral: store.ephemeral,
       showGrid: store.showGrid,
       theme: themeRef.current,
-      // Selection chrome would only get in the way of the text being edited.
-      showOverlay: store.editingTextId === null,
+      // Selection chrome would only get in the way of the text actually being
+      // typed — but it stays visible from the moment editing opens until the
+      // first keystroke, so it's clear the object is still selected and that
+      // clicking into it opened an editor, not that the selection vanished.
+      showOverlay: store.editingTextId === null || !store.editingTouched,
       editingId: store.editingTextId,
       scrappy: store.scrappy,
     });

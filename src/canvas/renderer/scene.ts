@@ -1,4 +1,4 @@
-import { objectBounds } from '../../document/model/objects';
+import { ANCHORS, anchorPoint, objectBounds } from '../../document/model/objects';
 import { rectCenter, rectsIntersect, rotatePoint, worldToScreen } from '../../geometry';
 import type { Camera, DrawingObject, Point, Rect, ShapeObject } from '../../document/model/types';
 import type { EphemeralState } from '../../app/store';
@@ -112,6 +112,25 @@ function drawOverlay(ctx: CanvasRenderingContext2D, input: SceneInput): void {
       ctx.strokeStyle = theme.accent;
       ctx.lineWidth = 2;
       ctx.strokeRect(Math.round(r.x) - 1, Math.round(r.y) - 1, Math.round(r.w) + 2, Math.round(r.h) + 2);
+
+      // Every named anchor the endpoint could bind to, not only the one it's
+      // currently closest to — so it's obvious where else on the shape a
+      // connector can land before the pointer gets there.
+      if (target.type === 'shape') {
+        for (const anchor of ANCHORS) {
+          const ap = worldToScreen(camera, anchorPoint(target, anchor));
+          const isActive =
+            ephemeral.snapPoint && ap.x === worldToScreen(camera, ephemeral.snapPoint).x &&
+            ap.y === worldToScreen(camera, ephemeral.snapPoint).y;
+          ctx.fillStyle = theme.handleFill;
+          ctx.strokeStyle = theme.accent;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(ap.x, ap.y, isActive ? 5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
     }
   }
 

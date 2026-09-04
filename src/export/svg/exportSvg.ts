@@ -1,4 +1,4 @@
-import { arrowBaseCenter, arrowHeadPoints, dashPattern, lineEndpoints } from '../../canvas/renderer/drawObject';
+import { arrowHeadPoints, dashPattern, lineEndpoints } from '../../canvas/renderer/drawObject';
 import { jitterStrokePoints, lineWobbleAmplitude, seedFromId, shapeWobbleAmplitude, sketchPolyline, sketchVertices } from '../../canvas/sketch';
 import { penOutlinePath } from '../../canvas/renderer/strokes';
 import { labelInset, shapePathData } from '../../canvas/shapes';
@@ -124,10 +124,10 @@ function shapeToSvg(o: ShapeObject, scrappy: boolean): string {
 
 function lineToSvg(o: LineObject, lookup: (id: string) => DrawingObject | undefined, scrappy: boolean): string {
   const [a, b] = lineEndpoints(o, lookup);
-  // The line body stops at the arrowhead's own base, not its tip, so the
-  // triangle — not a flat stroke cap — is the true point of the arrow.
-  const lineStart = o.startArrow === 'arrow' ? arrowBaseCenter(b, a, o.size) : a;
-  const lineEnd = o.endArrow === 'arrow' ? arrowBaseCenter(a, b, o.size) : b;
+  // An open chevron doesn't cover the line the way a filled triangle did, so
+  // the shaft runs all the way to the true endpoint underneath it.
+  const lineStart = a;
+  const lineEnd = b;
   const dash = dashPattern(o.style, o.size);
   const dashAttr = dash.length ? ` stroke-dasharray="${dash.map(n).join(' ')}"` : '';
 
@@ -137,18 +137,20 @@ function lineToSvg(o: LineObject, lookup: (id: string) => DrawingObject | undefi
     : `<line x1="${n(lineStart.x)}" y1="${n(lineStart.y)}" x2="${n(lineEnd.x)}" y2="${n(lineEnd.y)}" ` +
       `stroke="${o.color}" stroke-width="${n(o.size)}"${dashAttr}${o.style === 'dotted' ? ' stroke-linecap="round"' : ''}/>`;
   const parts = [shaft];
-  // Arrow heads are emitted as explicit polygons rather than markers, so the
-  // file stays flat and editable in any vector tool.
-  if (o.endArrow === 'arrow') parts.push(arrowPolygon(a, b, o.size, o.color));
-  if (o.startArrow === 'arrow') parts.push(arrowPolygon(b, a, o.size, o.color));
+  // Arrow heads are open chevrons — a polyline, not a filled polygon — so the
+  // file stays flat and editable in any vector tool while still matching the
+  // toolbar's own line-style arrow icons.
+  if (o.endArrow === 'arrow') parts.push(arrowChevron(a, b, o.size, o.color));
+  if (o.startArrow === 'arrow') parts.push(arrowChevron(b, a, o.size, o.color));
   return parts.join('');
 }
 
-function arrowPolygon(from: { x: number; y: number }, to: { x: number; y: number }, size: number, color: string): string {
-  const pts = arrowHeadPoints(from, to, size)
-    .map((p) => `${n(p.x)},${n(p.y)}`)
-    .join(' ');
-  return `<polygon points="${pts}" fill="${color}"/>`;
+function arrowChevron(from: { x: number; y: number }, to: { x: number; y: number }, size: number, color: string): string {
+  const [tip, l, r] = arrowHeadPoints(from, to, size);
+  // Left wing → tip → right wing, so the polyline traces one open "V"
+  // instead of `arrowHeadPoints`' own tip-first order zigzagging across it.
+  const pts = [l, tip, r].map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
+  return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="${n(size)}" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
 
 function textToSvg(o: TextObject, scrappy: boolean): string {

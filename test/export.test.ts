@@ -23,7 +23,7 @@ describe('SVG export', () => {
     expect(svg).toContain('#DBEAFE');
     expect(svg).toContain('Login');
     expect(svg).toContain('Notes');
-    expect(svg).toContain('<polygon'); // the arrow head
+    expect(svg).toContain('<polyline'); // the open-chevron arrow head
     expect(svg).toContain('stroke-dasharray');
   });
 
@@ -102,21 +102,20 @@ describe('PNG export sizing', () => {
 });
 
 describe('arrow geometry', () => {
-  it('pulls the line body back to the arrowhead base, not its tip', async () => {
-    const { arrowBaseCenter, arrowLength } = await import('../src/canvas/renderer/drawObject');
+  it('draws the open chevron centred on the true endpoint, not pulled back', async () => {
+    const { arrowHeadPoints } = await import('../src/canvas/renderer/drawObject');
     const from = { x: 0, y: 0 };
     const to = { x: 100, y: 0 };
-    const base = arrowBaseCenter(from, to, 4);
-    const len = arrowLength(4);
-    expect(base.x).toBeCloseTo(100 - len * 0.5);
-    expect(base.y).toBeCloseTo(0);
+    const [tip] = arrowHeadPoints(from, to, 4);
+    expect(tip).toEqual(to);
   });
 
-  it('shortens only the arrowed end of an SVG line, leaving a plain end untouched', () => {
+  it('runs an SVG line shaft the full distance, arrow or not — the open chevron sits on top', () => {
     const svg = exportPageToSvg(pageWith([line({ a: { x: 0, y: 0 }, b: { x: 100, y: 0 }, endArrow: 'arrow', startArrow: 'none' })]));
     const match = svg.match(/<line x1="([\d.-]+)" y1="[\d.-]+" x2="([\d.-]+)"/);
     expect(match).not.toBeNull();
-    expect(Number(match![1])).toBeCloseTo(0); // start untouched
-    expect(Number(match![2])).toBeLessThan(100); // end pulled back from the tip
+    expect(Number(match![1])).toBeCloseTo(0);
+    expect(Number(match![2])).toBeCloseTo(100);
+    expect(svg).toContain('<polyline');
   });
 });

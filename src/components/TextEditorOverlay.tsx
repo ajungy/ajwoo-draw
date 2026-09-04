@@ -118,6 +118,7 @@ export function TextEditorOverlay() {
         }}
         onInput={(e) => {
           const el = e.currentTarget;
+          store.markEditingTouched();
           // Amend rather than commit: a whole edit session is one undo step.
           commit(el.value, false);
           el.style.height = 'auto';

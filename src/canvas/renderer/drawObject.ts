@@ -148,10 +148,10 @@ export function lineEndpoints(o: LineObject, lookup: Lookup): [Point, Point] {
 }
 
 /**
- * Arrow head geometry, shared with the SVG exporter. The triangle's own tip is
- * the true endpoint; the line body must stop at the triangle's *base*, not run
- * all the way to the tip underneath it — otherwise the flat-capped stroke
- * pokes past (or shows through) the point and the arrow reads as blunt.
+ * Arrow head geometry, shared with the SVG exporter. An open chevron (two
+ * strokes meeting at the tip), not a filled triangle — it reads as a line
+ * drawing's arrow, matching the toolbar's own arrow icons, rather than a
+ * solid geometric marker.
  */
 export function arrowHeadPoints(from: Point, to: Point, size: number): [Point, Point, Point] {
   const angle = Math.atan2(to.y - from.y, to.x - from.x);
@@ -168,18 +168,12 @@ export function arrowLength(size: number): number {
   return Math.max(8, size * 3.2);
 }
 
-/** The point along the from→to axis where the line body should stop, at the
- *  arrowhead's own midpoint rather than its tip. */
-export function arrowBaseCenter(from: Point, to: Point, size: number): Point {
-  const angle = Math.atan2(to.y - from.y, to.x - from.x);
-  const back = arrowLength(size) * 0.5;
-  return { x: to.x - Math.cos(angle) * back, y: to.y - Math.sin(angle) * back };
-}
-
 function drawLine(ctx: CanvasRenderingContext2D, o: LineObject, lookup: Lookup, scrappy: boolean): void {
   const [a, b] = lineEndpoints(o, lookup);
-  const lineStart = o.startArrow === 'arrow' ? arrowBaseCenter(b, a, o.size) : a;
-  const lineEnd = o.endArrow === 'arrow' ? arrowBaseCenter(a, b, o.size) : b;
+  // An open chevron doesn't cover the line the way a filled triangle did, so
+  // the shaft can run all the way to the true endpoint underneath it.
+  const lineStart = a;
+  const lineEnd = b;
 
   ctx.strokeStyle = o.color;
   ctx.fillStyle = o.color;
@@ -203,20 +197,22 @@ function drawLine(ctx: CanvasRenderingContext2D, o: LineObject, lookup: Lookup, 
   }
   ctx.setLineDash([]);
   ctx.lineCap = 'butt';
-  // Arrow heads are filled from the true endpoints, so the point itself is
-  // exactly where the line was aimed, unaffected by the body's cutback.
-  if (o.endArrow === 'arrow') fillArrowHead(ctx, a, b, o.size);
-  if (o.startArrow === 'arrow') fillArrowHead(ctx, b, a, o.size);
+  if (o.endArrow === 'arrow') strokeArrowHead(ctx, a, b, o.size);
+  if (o.startArrow === 'arrow') strokeArrowHead(ctx, b, a, o.size);
 }
 
-function fillArrowHead(ctx: CanvasRenderingContext2D, from: Point, to: Point, size: number): void {
+function strokeArrowHead(ctx: CanvasRenderingContext2D, from: Point, to: Point, size: number): void {
   const [tip, l, r] = arrowHeadPoints(from, to, size);
+  ctx.save();
+  ctx.lineWidth = size;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.moveTo(tip.x, tip.y);
-  ctx.lineTo(l.x, l.y);
+  ctx.moveTo(l.x, l.y);
+  ctx.lineTo(tip.x, tip.y);
   ctx.lineTo(r.x, r.y);
-  ctx.closePath();
-  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawText(ctx: CanvasRenderingContext2D, o: TextObject, scrappy: boolean): void {

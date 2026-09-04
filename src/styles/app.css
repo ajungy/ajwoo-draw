@@ -202,6 +202,10 @@ body {
 }
 
 .header {
+  /* An anchor for the inline toolbar below, which centers on the header's own
+     width — not the leftover space between the title and the actions —
+     independent of how wide the title or the action cluster happen to be. */
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--s-4);
@@ -612,6 +616,10 @@ body {
   display: flex;
   align-items: center;
   gap: var(--s-4);
+  /* Same height as the header, so the two dark bars read as one continuous
+     strip of chrome rather than the tool row looking like an afterthought
+     tacked on below a taller header. */
+  min-height: var(--header-h);
   padding: var(--s-2) var(--s-4);
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
@@ -632,13 +640,17 @@ body {
 @media (min-width: 900px) {
   .toolbar-row--inline.toolbar {
     display: flex;
-    /* Grows to absorb the space between the title/page area and the action
-       cluster — keeping Undo/Redo/Zoom/etc. pinned to the right — while its
-       own left-aligned content sits right where the title area ends. Without
-       this growing, the browser would instead grow `.header__left`, pushing
-       the tools away from the left edge along with it. */
-    flex: 1 1 auto;
-    min-width: 0;
+    /* Centred on the header's own full width via absolute positioning, not
+       flex layout — a flex item can only centre within whatever space its
+       siblings leave behind, which drifts off-centre the moment the title or
+       the action cluster changes width. This stays at the true middle of the
+       bar regardless. */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: min(46%, 380px);
+    flex: 0 1 auto;
     padding: 0;
     border-bottom: none;
     background: transparent;
@@ -681,11 +693,21 @@ body {
   display: flex;
   align-items: center;
   gap: var(--s-4);
-  min-height: 40px;
+  /* Same height as the header and the tool row, always — even with nothing
+     to show (`--empty`) — so the canvas below never shifts as a selection
+     is made or cleared. Only the row's *content* animates in. */
+  min-height: var(--header-h);
   padding: var(--s-2) var(--s-4);
   padding-left: max(var(--s-4), var(--safe-left));
   padding-right: max(var(--s-4), var(--safe-right));
   border-bottom: var(--line) solid var(--header-border);
+}
+
+.context-bar--empty {
+  border-bottom-color: transparent;
+}
+
+.context-bar > * {
   animation: bar-in var(--d-base) var(--e-entrance);
 }
 
@@ -814,12 +836,18 @@ body {
   }
 }
 
-.context-bar .swatch {
+.context-bar .swatch::before {
   border-color: var(--header-border);
 }
 
 .context-bar .swatch[data-active] {
-  box-shadow: 0 0 0 1px var(--header-bg), 0 0 0 3px #FFFFFF;
+  background: var(--header-selected-bg);
+}
+
+@media (any-hover: hover) {
+  .context-bar .swatch:hover {
+    background: var(--header-hover);
+  }
 }
 
 .swatches {
@@ -843,17 +871,37 @@ body {
   white-space: nowrap;
 }
 
+/* Sized and treated like every other tool control (an icon button showing a
+   colour instead of a glyph): a fixed square, transparent until active, with
+   the colour itself confined to a small dot at its centre. A big, entirely
+   colour-filled circle used to double as both "this is a swatch" and "this is
+   the active one," which meant the only way to show "active" was a ring
+   around it — this instead gets the same subtle grey fill every other
+   selected tool in the app gets. */
 .swatch {
   position: relative;
-  width: 24px;
-  height: 24px;
-  border: var(--line) solid var(--border-control);
-  border-radius: var(--r-full);
-  background: var(--swatch, transparent);
+  display: grid;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  border: none;
+  border-radius: var(--r-control);
+  background: transparent;
   cursor: pointer;
-  transition: transform var(--d-fast) var(--e-standard), box-shadow var(--d-fast) var(--e-standard);
+  transition: background-color var(--d-fast) var(--e-standard);
 }
 
+.swatch::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-full);
+  border: var(--line) solid var(--border-control);
+  background: var(--swatch, transparent);
+}
+
+/* Same comfortable-finger-target trick as `.icon-button::after` — a 44px hit
+   area without growing the visible box. */
 .swatch::after {
   content: '';
   position: absolute;
@@ -863,7 +911,7 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.swatch[data-none] {
+.swatch[data-none]::before {
   background:
     linear-gradient(to top right, transparent 46%, var(--status-danger-solid) 46%,
       var(--status-danger-solid) 54%, transparent 54%),
@@ -871,7 +919,13 @@ body {
 }
 
 .swatch[data-active] {
-  box-shadow: 0 0 0 1px var(--surface-page), 0 0 0 3px var(--text-primary);
+  background: var(--surface-selected);
+}
+
+@media (any-hover: hover) {
+  .swatch:hover {
+    background: var(--surface-hover);
+  }
 }
 
 .sizes {

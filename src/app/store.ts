@@ -57,6 +57,12 @@ export class EditorStore {
   style: StyleState = { ...DEFAULT_STYLE };
   selection: ObjectId[] = [];
   editingTextId: ObjectId | null = null;
+  /** False from the moment editing opens until the first keystroke — while
+   *  false, the selection overlay (bounding box, handles) stays visible over
+   *  the text editor, so it's clear the shape is still selected and editable;
+   *  the first character typed hides it, so nothing distracts from the text
+   *  itself while composing it. */
+  editingTouched = false;
   currentPageId: string;
   saveStatus: SaveStatus = 'idle';
   /** A dotted grid is the default surface texture; the user can turn it off. */
@@ -225,6 +231,15 @@ export class EditorStore {
   setEditingText(id: ObjectId | null): void {
     if (this.editingTextId === id) return;
     this.editingTextId = id;
+    this.editingTouched = false;
+    this.notify();
+  }
+
+  /** Called on the first keystroke of an editing session — hides the
+   *  selection overlay so it stops competing with the text being typed. */
+  markEditingTouched(): void {
+    if (this.editingTouched) return;
+    this.editingTouched = true;
     this.notify();
   }
 
