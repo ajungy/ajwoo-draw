@@ -23,7 +23,11 @@
   --canvas-accent-soft: rgba(37, 99, 235, 0.12);
   --canvas-handle: #FFFFFF;
 
-  --header-h: 48px;
+  /* 4px of clearance above and below a small control, on every side — not a
+     fixed pixel value, so it stays a 4px gap (not a growing one) at the
+     larger touch-target sizes the breakpoints below scale `--control-h-sm`
+     up to. */
+  --header-h: calc(var(--control-h-sm) + 8px);
 }
 
 * {

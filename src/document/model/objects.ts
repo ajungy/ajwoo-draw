@@ -132,14 +132,13 @@ export function hitTest(o: DrawingObject, p: Point, tolerance: number): boolean 
     case 'text':
       return rectContains(expandRect(textBounds(o), tolerance), p);
     case 'shape': {
+      // The whole frame is solid to the touch, filled or not — a transparent
+      // rectangle is still a rectangle, and both clicking to select it and
+      // double-clicking to add a label need to work anywhere inside it, not
+      // only on its drawn edge.
       const local = toShapeLocal(o, p);
       const outer = expandRect(o.frame, tolerance + o.size / 2);
-      if (!rectContains(outer, local)) return false;
-      // A filled shape is solid to the touch; an unfilled one is hit on its edge
-      // or on its label, so a labelled outline stays easy to tap.
-      if (o.fill !== null || o.text.trim() !== '') return true;
-      const inner = expandRect(o.frame, -(tolerance + o.size / 2));
-      return !(inner.w > 0 && inner.h > 0 && rectContains(inner, local));
+      return rectContains(outer, local);
     }
   }
 }

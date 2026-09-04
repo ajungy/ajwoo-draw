@@ -27,11 +27,11 @@ describe('objects', () => {
     expect(hitTest(stroke, { x: 10, y: 1 }, 2)).toBe(false);
   });
 
-  it('treats an unfilled shape as hollow and a filled one as solid', () => {
+  it('treats a shape as solid everywhere inside its frame, filled or not', () => {
     const hollow = shape();
     const filled = shape({ fill: '#FFFFFF' });
     const middle = { x: 50, y: 30 };
-    expect(hitTest(hollow, middle, 2)).toBe(false);
+    expect(hitTest(hollow, middle, 2)).toBe(true);
     expect(hitTest(filled, middle, 2)).toBe(true);
     expect(hitTest(hollow, { x: 0, y: 30 }, 3)).toBe(true);
   });

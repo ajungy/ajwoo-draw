@@ -693,6 +693,11 @@ export class CanvasController {
     };
     store.addObject(object, { select: true });
     this.host.requestTextEdit(object.id);
+    // A brand-new, still-empty text object has nothing for the bounding box
+    // to usefully outline — skip the "show the box until the first
+    // keystroke" grace period that re-opening an existing object's editor
+    // gets, and go straight to just the caret.
+    store.markEditingTouched();
   }
 
   /* ---------------------------------------------------------- select ops -- */

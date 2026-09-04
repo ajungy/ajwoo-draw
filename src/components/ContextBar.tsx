@@ -29,10 +29,12 @@ const LINE_STYLES: { value: LineStyle; label: string; node: string }[] = [
   { value: 'dotted', label: 'Dotted line', node: '· ·' },
 ];
 
+// Three families, not four: one sans, one serif, one handwritten — Mono
+// dropped from the picker (still a valid `FontFamily` for older documents
+// that already used it, just not offered as a new choice).
 const FONTS: { value: FontFamily; label: string }[] = [
   { value: 'sans', label: 'Sans' },
   { value: 'serif', label: 'Serif' },
-  { value: 'mono', label: 'Mono' },
   { value: 'hand', label: 'Hand' },
 ];
 
@@ -68,12 +70,18 @@ export function ContextBar() {
   const store = useEditor();
   const selected = store.selectedObjects();
   const mode = contextMode(selected, store.tool);
-  // Even with nothing to show, the row still mounts at its usual height (see
-  // `.context-bar` in app.css) rather than collapsing to zero — otherwise the
-  // canvas below it grows and shrinks by a whole row's height every time a
-  // selection is made or cleared, which reads as the page itself lurching up
-  // and down rather than a panel opening.
-  if (!mode) return <div className="context-bar context-bar--empty" aria-hidden="true" />;
+  if (!mode) {
+    // Select (with nothing selected) and Hand never have anything to put
+    // here — the row is dropped entirely rather than shown empty, so those
+    // two tools give the canvas back the extra row of height.
+    if (store.tool === 'select' || store.tool === 'hand') return null;
+    // Every other empty case (the Eraser, mid-selection-change) still mounts
+    // the row at its usual height rather than collapsing to zero — otherwise
+    // the canvas grows and shrinks by a whole row's height as a selection is
+    // made or cleared, which reads as the page lurching up and down rather
+    // than a panel opening.
+    return <div className="context-bar context-bar--empty" aria-hidden="true" />;
+  }
 
   /** Applies a style to the selection when there is one, and to the next object otherwise. */
   const apply = (patch: Partial<Record<string, unknown>>, toObject: (o: DrawingObject) => DrawingObject) => {
