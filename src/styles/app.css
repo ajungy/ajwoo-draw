@@ -303,9 +303,9 @@ body {
 }
 
 .title-input {
-  /* Sized by its `size` attribute (set from the title's length in JS) so the
-     field hugs its text instead of stretching to fill the row. It can still
-     shrink — never grow — when the header itself runs out of room. */
+  /* Its width is set inline from a canvas text measurement (see Header.tsx)
+     so the field hugs its text instead of stretching to fill the row. It can
+     still shrink — never grow — when the header itself runs out of room. */
   flex: 0 1 auto;
   min-width: 0;
   max-width: 22ch;
@@ -645,17 +645,12 @@ body {
 @media (min-width: 900px) {
   .toolbar-row--inline.toolbar {
     display: flex;
-    /* Centred on the header's own full width via absolute positioning, not
-       flex layout — a flex item can only centre within whatever space its
-       siblings leave behind, which drifts off-centre the moment the title or
-       the action cluster changes width. This stays at the true middle of the
-       bar regardless. */
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    max-width: min(46%, 380px);
-    flex: 0 1 auto;
+    /* Grows to absorb the space between the title/page area and the action
+       cluster — keeping Undo/Redo/Zoom/etc. pinned to the right — while its
+       own left-aligned content (see the base `.toolbar` rule's
+       `justify-content: flex-start`) sits right where the title area ends. */
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 0;
     border-bottom: none;
     background: transparent;
@@ -746,10 +741,11 @@ body {
   display: none;
 }
 
-/* The one fixed pattern every mode follows: size/weight at the far left,
-   whatever's unique to the mode centred, colour pickers at the far right. An
-   empty section (e.g. no centre content for a selected line-endpoint state)
-   just leaves that gap — the other two stay put rather than re-centring. */
+/* The most-used control for the mode leads (left), whatever follows it flows
+   right after in the same left-aligned line, and single one-tap toggles
+   (arrow ends, connector snapping) sit apart at the row's far right — a lone
+   switch reads differently from a set of options to pick between, so it gets
+   its own end of the row rather than blending into the sequence. */
 .context-bar__section {
   display: flex;
   align-items: center;
@@ -757,34 +753,8 @@ body {
   flex: none;
 }
 
-.context-bar__section--left,
 .context-bar__section--right {
-  flex: 0 0 auto;
-}
-
-.context-bar__section--center {
-  flex: 1 1 auto;
-  justify-content: center;
-  gap: var(--s-4);
-}
-
-@media (min-width: 900px) {
-  /* Centred on the row's own full width via absolute positioning, same as
-     the header's inline toolbar — a flex `justify-content: center` can only
-     centre within whatever space the left and right sections leave behind,
-     which drifts off-centre as either one changes width. */
-  .context-bar__scroll {
-    position: relative;
-  }
-
-  .context-bar__section--center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    flex: 0 1 auto;
-    max-width: min(55%, 480px);
-  }
+  margin-left: auto;
 }
 
 .context-bar__fixed {

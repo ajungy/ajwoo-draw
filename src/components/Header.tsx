@@ -56,9 +56,12 @@ export function Header({ actions }: { actions: HeaderActions }) {
       // the box comes out narrower than the text it's meant to fit and the
       // last character or two get clipped under the ellipsis.
       const horizontalChrome = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      // A couple of pixels so the caret has somewhere to sit after the last
-      // character rather than immediately clipping it.
-      const width = Math.max(24, textWidth(store.doc.title, cs.font) + horizontalChrome + 2);
+      // A few pixels of slack: room for the caret after the last character,
+      // and cover for canvas measureText() running a couple of px narrower
+      // than the DOM's own text layout for the same string/font — without
+      // it, the box comes out juuust short and clips a letter under the
+      // ellipsis.
+      const width = Math.max(24, textWidth(store.doc.title, cs.font) + horizontalChrome + 6);
       el.style.width = `${width}px`;
     };
     resize();

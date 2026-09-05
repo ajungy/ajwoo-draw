@@ -112,53 +112,71 @@ export function ContextBar() {
   }
 
   if (mode === 'line') {
-    left = <Swatches label="Line colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
+    // Line style leads — it's the choice made most often — with colour and
+    // thickness following it; the one-tap toggles (arrow ends, connector
+    // snapping) sit apart at the row's far right, the way a lone switch
+    // reads differently from a set of options to pick between.
+    left = (
+      <Segmented
+        label="Line style"
+        value={store.style.lineStyle}
+        options={LINE_STYLES.map((s) => ({ value: s.value, label: s.label, node: s.node }))}
+        onChange={(lineStyle) =>
+          apply({ lineStyle }, (o) => (o.type === 'line' ? { ...o, style: lineStyle } : o))
+        }
+      />
+    );
     center = (
       <>
-        <Segmented
-          label="Line style"
-          value={store.style.lineStyle}
-          options={LINE_STYLES.map((s) => ({ value: s.value, label: s.label, node: s.node }))}
-          onChange={(lineStyle) =>
-            apply({ lineStyle }, (o) => (o.type === 'line' ? { ...o, style: lineStyle } : o))
-          }
-        />
-        <BarGroup>
-          <IconButton
-            icon="arrow-start"
-            label="Arrow at start"
-            size="sm"
-            active={store.style.startArrow === 'arrow'}
-            onClick={() => {
-              const startArrow = store.style.startArrow === 'arrow' ? 'none' : 'arrow';
-              apply({ startArrow }, (o) => (o.type === 'line' ? { ...o, startArrow } : o));
-            }}
-          />
-          <IconButton
-            icon="arrow-end"
-            label="Arrow at end"
-            size="sm"
-            active={store.style.endArrow === 'arrow'}
-            onClick={() => {
-              const endArrow = store.style.endArrow === 'arrow' ? 'none' : 'arrow';
-              apply({ endArrow }, (o) => (o.type === 'line' ? { ...o, endArrow } : o));
-            }}
-          />
-          <IconButton
-            icon="connector"
-            label="Connector: snap to shapes"
-            size="sm"
-            active={store.style.connector}
-            onClick={() => store.setStyle({ connector: !store.style.connector })}
-          />
-        </BarGroup>
+        <Swatches label="Line colour" value={store.style.color} colors={PALETTE} onChange={setColor} />
+        <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />
       </>
     );
-    right = <SizePicker label="Thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
+    right = (
+      <BarGroup>
+        <IconButton
+          icon="arrow-start"
+          label="Arrow at start"
+          size="sm"
+          active={store.style.startArrow === 'arrow'}
+          onClick={() => {
+            const startArrow = store.style.startArrow === 'arrow' ? 'none' : 'arrow';
+            apply({ startArrow }, (o) => (o.type === 'line' ? { ...o, startArrow } : o));
+          }}
+        />
+        <IconButton
+          icon="arrow-end"
+          label="Arrow at end"
+          size="sm"
+          active={store.style.endArrow === 'arrow'}
+          onClick={() => {
+            const endArrow = store.style.endArrow === 'arrow' ? 'none' : 'arrow';
+            apply({ endArrow }, (o) => (o.type === 'line' ? { ...o, endArrow } : o));
+          }}
+        />
+        <IconButton
+          icon="connector"
+          label="Connector: snap to shapes"
+          size="sm"
+          active={store.style.connector}
+          onClick={() => store.setStyle({ connector: !store.style.connector })}
+        />
+      </BarGroup>
+    );
   }
 
   if (mode === 'shape') {
-    left = (
+    // Which shape to draw is the choice made most often here, so it leads;
+    // colour and thickness follow.
+    left = selected.length === 0 && (
+      <Segmented
+        label="Shape"
+        value={store.style.shapeKind}
+        options={SHAPES}
+        onChange={(shapeKind) => store.setStyle({ shapeKind })}
+      />
+    );
+    center = (
       <>
         <Swatches
           label="Stroke colour"
@@ -173,14 +191,6 @@ export function ContextBar() {
           onChange={(fill) => apply({ fill }, (o) => (o.type === 'shape' ? { ...o, fill } : o))}
         />
       </>
-    );
-    center = selected.length === 0 && (
-      <Segmented
-        label="Shape"
-        value={store.style.shapeKind}
-        options={SHAPES}
-        onChange={(shapeKind) => store.setStyle({ shapeKind })}
-      />
     );
     right = <SizePicker label="Border thickness" value={store.style.size} sizes={STROKE_SIZES} onChange={setSize} />;
   }
