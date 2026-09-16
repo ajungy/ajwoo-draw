@@ -677,6 +677,7 @@ body {
   flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   touch-action: pan-x;
 }
@@ -732,6 +733,7 @@ body {
   min-width: 0;
   /* Menus and toolbars keep normal scrolling; only the canvas swallows gestures. */
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   touch-action: pan-x;
   padding-bottom: 2px;
@@ -763,7 +765,7 @@ body {
   gap: var(--s-1);
   flex: none;
   padding-left: var(--s-4);
-  border-left: var(--line) solid var(--border-subtle);
+
 }
 
 .bar-group {
