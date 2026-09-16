@@ -8,7 +8,8 @@ export function AnalyticsConsent({ config, path }: { config: AnalyticsConfig; pa
   const [available, setAvailable] = useState(false);
   const [choice, setChoice] = useState<'yes' | 'no'>();
   const [open, setOpen] = useState(false);
-  const settings = useRef<HTMLButtonElement>(null);
+  const settings = useRef<HTMLElement | null>(null);
+  const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const enabled = configureAnalytics(config);
     setAvailable(enabled);
@@ -21,18 +22,22 @@ export function AnalyticsConsent({ config, path }: { config: AnalyticsConfig; pa
     refresh();
     window.addEventListener('ajwoo-analytics-consent', refresh);
     window.addEventListener('focus', refresh);
+    const show = () => { settings.current = document.activeElement as HTMLElement; setOpen(true); };
+    window.addEventListener('ajwoo-analytics-open', show);
     document.addEventListener('click', trackLink, true);
     document.addEventListener('auxclick', trackLink, true);
     return () => {
       active = false;
       window.removeEventListener('ajwoo-analytics-consent', refresh);
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('ajwoo-analytics-open', show);
       document.removeEventListener('click', trackLink, true);
       document.removeEventListener('auxclick', trackLink, true);
     };
   }, [config]);
   useEffect(() => { if (analyticsAvailable()) trackPage(); }, [path]);
-  if (!available) return null;
+  useEffect(() => { if (open) panel.current?.focus(); }, [open]);
+  if (!available || (!open && choice)) return null;
   function choose(value: 'yes' | 'no') {
     setConsent(value);
     setChoice(consent());
@@ -40,13 +45,16 @@ export function AnalyticsConsent({ config, path }: { config: AnalyticsConfig; pa
     settings.current?.focus();
   }
   return <aside className="aj-analytics" aria-label="Analytics preferences">
-    <button ref={settings} type="button" className="aj-analytics-settings" aria-expanded={open || !choice} onClick={() => setOpen(!open)}>Analytics: {choice === 'yes' ? 'on' : 'off'}</button>
-    {(open || !choice) && <section className="aj-analytics-panel" aria-label="Help improve AJWOO">
+    <section ref={panel} tabIndex={-1} className="aj-analytics-panel" aria-label="Help improve AJWOO" onKeyDown={(event) => { if (event.key === 'Escape') { if (!choice) choose('no'); else { setOpen(false); settings.current?.focus(); } } }}>
       <strong>Help improve AJWOO</strong>
-      <p>Allow PostHog to measure page visits, traffic sources and app actions using analytics cookies across AJWOO sites? No recordings, file contents or drawings are collected. Change your choice here anytime.</p>
+      <p>Allow PostHog cookies to measure visits and app use?</p>
       {navigator.doNotTrack === '1' || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl
-        ? <><p>Your browser’s privacy preference keeps analytics off.</p><button type="button" onClick={() => choose('no')}>Close</button></>
-        : <div className="aj-analytics-actions"><button type="button" onClick={() => choose('no')}>No thanks</button><button type="button" onClick={() => choose('yes')}>Allow analytics</button></div>}
-    </section>}
+        ? <><p>Your browser keeps analytics off.</p><button type="button" onClick={() => choose('no')}>Close</button></>
+        : <div className="aj-analytics-actions"><button type="button" onClick={() => choose('no')}>Decline</button><button type="button" onClick={() => choose('yes')}>Allow</button></div>}
+    </section>
   </aside>;
+}
+
+export function AnalyticsSettingsLink() {
+  return <button type="button" className="aj-analytics-link" onClick={() => window.dispatchEvent(new Event('ajwoo-analytics-open'))}>Privacy settings</button>;
 }
