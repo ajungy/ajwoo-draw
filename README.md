@@ -102,15 +102,17 @@ Nothing, unless you ask for it.
 You → your browser → IndexedDB on this device
 ```
 
-There is no server, no account, no telemetry, and no analytics. Data leaves only
-through actions you take:
+Draw has no account and no server-side drawing storage. Optional PostHog analytics
+records page visits and export outcomes only after you allow it. You can withdraw
+through Analytics settings. Drawings, filenames and contents are never sent to
+analytics. The sharing/export actions below remain under your control:
 
 - **Export PNG / SVG / drawing data** — writes a file to your device.
 - **Copy SVG / PNG** — writes to your system clipboard.
 - **Share** — builds a link (entirely client-side) and hands it to the system
   share sheet or your clipboard. Where that link then goes is up to you.
 
-The one external request the app makes is to Google Fonts for the UI typeface,
+Separately from optional analytics, the app requests Google Fonts for the UI typeface,
 cached by the service worker after the first visit. Exports embed font *names*,
 never font files or remote references.
 
