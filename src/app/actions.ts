@@ -1,3 +1,4 @@
+import { track } from '../analytics/core';
 import { exportPageToPng } from '../export/png/exportPng';
 import { exportPageToSvg } from '../export/svg/exportSvg';
 import {
@@ -42,6 +43,7 @@ export async function exportPng(store: EditorStore): Promise<ActionResult> {
     downloadBlob(blob, safeFilename(store.doc.title, 'png'));
     return ok('PNG downloaded.');
   } catch (error) {
+    track('drawing_export_failed', { format: 'png' });
     return fail(messageOf(error, 'This drawing could not be exported as PNG.'));
   }
 }

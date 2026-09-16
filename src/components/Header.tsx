@@ -199,6 +199,7 @@ export function Header({ actions }: { actions: HeaderActions }) {
             <MenuSeparator />
             <MenuItem onSelect={() => run(setMenuOpen, actions.openFile)}>Open draw file…</MenuItem>
             <MenuItem onSelect={() => run(setMenuOpen, actions.exportJson)}>Download draw file</MenuItem>
+            <MenuItem onSelect={() => { setMenuOpen(false); window.dispatchEvent(new Event('ajwoo-analytics-open')); }}>Privacy settings</MenuItem>
             <MenuSeparator />
             <MenuItem tone="danger" onSelect={() => run(setMenuOpen, actions.resetDrawing)}>
               Reset drawing

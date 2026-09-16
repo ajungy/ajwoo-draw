@@ -1,3 +1,4 @@
+import { AppAnalytics } from './analytics/AppAnalytics';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
@@ -61,6 +62,7 @@ async function boot() {
   if (!root) throw new Error('Missing #root');
   createRoot(root).render(
     <StrictMode>
+      <AppAnalytics />
       <StoreContext.Provider value={store}>
         <App autosave={autosave} openedFromLink={openedFromLink} startupError={startupError} />
       </StoreContext.Provider>

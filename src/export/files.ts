@@ -1,3 +1,4 @@
+import { track } from '../analytics/core';
 /** Filesystem and clipboard plumbing. Every capability here is feature-detected. */
 
 export function downloadBlob(blob: Blob, filename: string): void {
@@ -9,6 +10,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
+  track('drawing_export_requested', { format: ['image/png', 'image/svg+xml', 'application/json'].includes(blob.type) ? blob.type : 'other' });
   // Revoking immediately can cancel the download in some browsers.
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
