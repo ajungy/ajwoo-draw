@@ -4,7 +4,7 @@ import { useEditor } from '../app/useStore';
 import { ContextBar } from '../components/ContextBar';
 import { boundsOfObjects } from '../document/model/objects';
 import { insertGeneratedImage } from './insertImage';
-import { DEFAULT_MODELS, type Provider } from './provider';
+import { DEFAULT_MODELS, generateImage, type Provider } from './provider';
 import { selectionPage, selectionReference } from './selection';
 import { copyHandoff, handoffImage } from './handoff';
 import { downloadBlob } from '../export/files';
@@ -74,13 +74,23 @@ export function GenerationFeature() {
     try {
       const reference = await selectionReference(page, scrappy);
       controller.signal.throwIfAborted();
-      const response = await fetch('/api/generate-image', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, model, apiKey, prompt: description, reference }), signal: controller.signal });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || 'Generation failed. Try again.');
-      if (typeof body.image !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(body.image)) throw new Error('The provider returned an invalid image.');
-      setResult({ reference, image: body.image, prompt: description });
-      const inserted = await insertGeneratedImage(store, body.image, description, documentId, pageId, bounds, controller.signal);
+      const request = { provider, model, apiKey, prompt: description, reference };
+      const timeout = setTimeout(() => controller.abort(), 180_000);
+      let image: string;
+      try {
+        if (local) {
+          const response = await fetch('/api/generate-image', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(request), signal: controller.signal });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.error || 'Generation failed. Try again.');
+          image = body.image;
+        } else {
+          image = await generateImage(request, controller.signal);
+        }
+      } finally { clearTimeout(timeout); }
+      if (typeof image !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(image)) throw new Error('The provider returned an invalid image.');
+      setResult({ reference, image, prompt: description });
+      const inserted = await insertGeneratedImage(store, image, description, documentId, pageId, bounds, controller.signal);
       const stage = document.querySelector('.stage')?.getBoundingClientRect();
       if (stage && store.currentPageId === pageId) {
         const zoom = Math.max(0.1, Math.min(1, (stage.width - 64) / inserted.frame.w, (stage.height - 64) / inserted.frame.h));
@@ -89,11 +99,11 @@ export function GenerationFeature() {
       }
     } catch (e) {
       setError(controller.signal.aborted ? 'Stopped waiting. The provider may still charge for this request.'
-        : e instanceof TypeError ? 'Could not reach the local image service. Check that the development server is running.'
+        : e instanceof TypeError ? 'Could not reach the image provider. Check your connection. If your provider blocks browser requests, disconnect and use Copy to generate in your chat app.'
         : (e as Error).message);
     } finally { active.current = null; setBusy(false); }
   };
-  const selected = local && count > 0;
+  const selected = count > 0;
   return <>
     <ContextBar
       promptToggle={selected && <button type="button" className="generation-toggle" aria-pressed={promptOpen}
@@ -110,7 +120,7 @@ export function GenerationFeature() {
           title={apiKey.trim() ? 'API key supplied. Change provider or disconnect.' : 'Enter your provider API key'}>Connect</button>
       </form> : undefined}
     />
-    {(busy || error || result) && local && <div className="generation-status" aria-live="polite">
+    {(busy || error || result) && <div className="generation-status" aria-live="polite">
       <span className={error ? 'generation-error' : ''}>{error || (busy ? 'Generating your image. This may take a few minutes.' : '')}</span>
       {handoff && !copied && <button className="generation-link" onClick={() => downloadBlob(handoff, 'drawing-prompt.png')}>Download selection</button>}
       {busy && <button className="generation-link" onClick={() => active.current?.abort()}>Stop waiting</button>}
@@ -126,7 +136,7 @@ export function GenerationFeature() {
         <label>Image model<input value={model} onChange={e => setModel(e.target.value)} placeholder={DEFAULT_MODELS[provider]} /></label>
         <label>API key<input type="password" autoComplete="off" spellCheck={false} value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="Paste your API key" /></label>
       </div>
-      <p className="generation-note">Your key stays in memory until you reload or disconnect. It is never saved in your drawing. Generation sends the selected drawing and prompt through this local app to {provider === 'openai' ? 'OpenAI' : 'Google'}.</p>
+      <p className="generation-note">Your key stays in memory until you reload or disconnect. It is never saved in your drawing. Generation sends the selected drawing and prompt {local ? 'through the local relay to' : 'directly from your browser to'} {provider === 'openai' ? 'OpenAI' : 'Google'}.</p>
       <p><a href={provider === 'openai' ? 'https://platform.openai.com/api-keys' : 'https://aistudio.google.com/apikey'} target="_blank" rel="noreferrer">Get an API key</a></p>
       <div className="generation-modal__actions"><button className="button button--secondary" onClick={() => { setApiKey(''); setConnection(false); }}>Disconnect</button>
         <button className="button button--primary" disabled={!apiKey.trim() || !/^[a-zA-Z0-9._-]{1,100}$/.test(model)} onClick={() => setConnection(false)}>Use this model</button></div>

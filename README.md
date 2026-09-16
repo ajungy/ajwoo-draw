@@ -222,6 +222,6 @@ of objects.
   supports rotation and both renderers honour it.
 - There is no multiplayer, no comments, and no cloud storage — by design.
 
-### Local drawing-to-image prototype
+### Drawing-to-image
 
-Select drawing objects and toggle Prompt to describe the finish or changes. Copy the reference for a subscription handoff, or connect your own OpenAI or Gemini API key to generate directly onto the canvas. See [IMAGE-GENERATION.md](IMAGE-GENERATION.md) for setup, testing, billing, and prototype limits. This feature runs with `npm run dev` on localhost and is not enabled in the static deployment.
+Select drawing objects and toggle Prompt to describe the finish or changes. Copy the reference for a subscription handoff, or connect your own OpenAI or Gemini API key to generate directly onto the canvas. See [IMAGE-GENERATION.md](IMAGE-GENERATION.md) for setup, testing, billing, and prototype limits. Available on the live site and locally. The live site sends API requests directly to the selected provider using your own key.

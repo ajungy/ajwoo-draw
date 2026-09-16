@@ -8,7 +8,7 @@ vi.mock('../src/generation/handoff', () => ({ copyHandoff: state.copy, handoffIm
 vi.mock('../src/app/useStore', () => ({ useEditor: () => state.store }));
 vi.mock('../src/generation/selection', async importOriginal => ({ ...await importOriginal<typeof import('../src/generation/selection')>(), selectionReference: state.exportReference }));
 
-it('completes selection → key → prompt → result → download, retaining the original drawing', async () => {
+it.each(['127.0.0.1', 'draw.ajwoo.com'])('completes selection → key → prompt → result → download, retaining the original drawing on %s', async (hostname) => {
   const original = [shape(), shape()];
   const store = new EditorStore();
   original.forEach(o => store.addObject(o));
@@ -16,9 +16,9 @@ it('completes selection → key → prompt → result → download, retaining th
   state.store = store;
   state.exportReference.mockResolvedValue('data:image/png;base64,cmVm');
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
-  vi.stubGlobal('location', { hostname: '127.0.0.1' });
+  vi.stubGlobal('location', { hostname });
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
-  const send = vi.fn().mockResolvedValue(new Response(JSON.stringify({ image: 'data:image/png;base64,aW1hZ2U=' })));
+  const send = vi.fn().mockResolvedValue(new Response(JSON.stringify(hostname === '127.0.0.1' ? { image: 'data:image/png;base64,aW1hZ2U=' } : { data: [{ b64_json: 'aW1hZ2U=' }] })));
   vi.stubGlobal('fetch', send);
   vi.stubGlobal('Image', class { src = ''; naturalWidth = 512; naturalHeight = 512; decode() { return Promise.resolve(); } });
   const host = document.createElement('div'); document.body.append(host);
@@ -43,9 +43,15 @@ it('completes selection → key → prompt → result → download, retaining th
     expect(store.page.objects.at(-1)).toMatchObject({ type: 'image', src: 'data:image/png;base64,aW1hZ2U=' });
     expect(document.querySelector('dialog')).toBeNull();
     expect(send).toHaveBeenCalledTimes(1);
-    const payload = JSON.parse(send.mock.calls[0][1].body);
-    expect(payload.reference).toBe('data:image/png;base64,cmVm');
-    expect(payload.apiKey).toBe('user-test-key');
+    if (hostname === '127.0.0.1') {
+      const payload = JSON.parse(send.mock.calls[0][1].body);
+      expect(payload.reference).toBe('data:image/png;base64,cmVm');
+      expect(payload.apiKey).toBe('user-test-key');
+    } else {
+      expect(send.mock.calls[0][0]).toBe('https://api.openai.com/v1/images/edits');
+      expect(send.mock.calls[0][1].headers.Authorization).toBe('Bearer user-test-key');
+      expect(send.mock.calls[0][1].body.get('image[]')).toBeInstanceOf(Blob);
+    }
     expect(store.page.objects.slice(0, 2)).toEqual(original);
     store.undo();
     expect(store.page.objects).toEqual(original);
@@ -55,7 +61,7 @@ it('completes selection → key → prompt → result → download, retaining th
 });
 
 
-it('copies the selected drawing and prompt without a key or a provider request', async () => {
+it.each(['127.0.0.1', 'draw.ajwoo.com'])('copies the selected drawing and prompt without a key or a provider request on %s', async (hostname) => {
   const original = [shape(), shape()];
   const store = new EditorStore();
   original.forEach(o => store.addObject(o));
@@ -65,7 +71,7 @@ it('copies the selected drawing and prompt without a key or a provider request',
   state.handoffImage.mockResolvedValue(blob);
   state.copy.mockResolvedValue(undefined);
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
-  vi.stubGlobal('location', { hostname: '127.0.0.1' });
+  vi.stubGlobal('location', { hostname });
   const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
   const host = document.createElement('div'); document.body.append(host);
   const root = createRoot(host);
