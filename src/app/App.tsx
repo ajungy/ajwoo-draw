@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CanvasView } from '../canvas/CanvasView';
 import type { CanvasController } from '../canvas/interaction/controller';
 import { CanvasDescription } from '../components/CanvasDescription';
-import { ContextBar } from '../components/ContextBar';
+import { GenerationFeature } from '../generation/GenerationFeature';
 import { Header, type HeaderActions } from '../components/Header';
 import { TextEditorOverlay } from '../components/TextEditorOverlay';
 import { Toolbar } from '../components/Toolbar';
@@ -171,7 +171,7 @@ export function App({ autosave, openedFromLink, startupError }: AppProps) {
     <div className="shell">
       <Header actions={headerActions} />
       <Toolbar />
-      <ContextBar />
+      <GenerationFeature />
 
       <main className="stage" ref={stageRef}>
         <CanvasDescription />

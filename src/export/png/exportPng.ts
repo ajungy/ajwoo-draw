@@ -1,3 +1,4 @@
+import { loadDrawingImages } from '../../canvas/renderer/images';
 import { renderScene, type SceneTheme } from '../../canvas/renderer/scene';
 import type { DrawingPage, Rect } from '../../document/model/types';
 import { pageBounds } from '../svg/exportSvg';
@@ -49,6 +50,7 @@ export async function exportPageToPng(
   page: DrawingPage,
   options: Partial<PngOptions> = {},
 ): Promise<Blob> {
+  await loadDrawingImages(page.objects);
   const opts = { ...defaultPngOptions(), ...options };
   const box = pageBounds(page, opts.padding);
 

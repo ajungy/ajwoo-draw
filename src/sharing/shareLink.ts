@@ -44,6 +44,8 @@ function compactPage(page: DrawingPage): DrawingPage {
 
 function compactObject(o: DrawingObject): DrawingObject {
   switch (o.type) {
+    case 'image':
+      return o;
     case 'pen':
       return {
         ...o,

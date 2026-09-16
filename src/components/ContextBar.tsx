@@ -66,7 +66,7 @@ const ALIGNS: { value: TextAlign; label: string; icon: IconName }[] = [
  * left, the size/weight control is always at the far right, and whatever is
  * unique to that mode sits centred between them.
  */
-export function ContextBar() {
+export function ContextBar({ promptControls, promptToggle }: { promptControls?: ReactNode; promptToggle?: ReactNode } = {}) {
   const store = useEditor();
   const selected = store.selectedObjects();
   const mode = contextMode(selected, store.tool);
@@ -93,7 +93,7 @@ export function ContextBar() {
   };
 
   const setSize = (size: number) =>
-    apply({ size }, (o) => (o.type === 'text' ? o : { ...o, size }));
+    apply({ size }, (o) => (o.type === 'text' || o.type === 'image' ? o : { ...o, size }));
 
   /** The shape stroke swatch: separate from `color` so it alone can go
    *  transparent without taking the label text colour with it. */
@@ -105,6 +105,8 @@ export function ContextBar() {
   let left: ReactNode = null;
   let center: ReactNode = null;
   let right: ReactNode = null;
+
+  if (mode === 'image') left = <span>Image</span>;
 
   if (mode === 'pen') {
     left = <Swatches label="Stroke colour" value={store.style.color} colors={PALETTE} onChange={setColor} />;
@@ -253,9 +255,11 @@ export function ContextBar() {
   return (
     <div className="context-bar" role="toolbar" aria-label={`${mode} options`}>
       <div className="context-bar__scroll">
+        {promptControls ?? <>
         <div className="context-bar__section context-bar__section--left">{left}</div>
         <div className="context-bar__section context-bar__section--center">{center}</div>
         <div className="context-bar__section context-bar__section--right">{right}</div>
+        </>}
       </div>
 
       {selected.length > 0 && (
@@ -268,13 +272,14 @@ export function ContextBar() {
             tone="danger"
             onClick={() => store.deleteSelection()}
           />
+          {promptToggle}
         </div>
       )}
     </div>
   );
 }
 
-type ContextMode = 'pen' | 'line' | 'shape' | 'text';
+type ContextMode = 'pen' | 'line' | 'shape' | 'text' | 'image';
 
 /**
  * Selection wins over the active tool; a mixed selection falls back to stroke
@@ -286,6 +291,7 @@ function contextMode(selected: DrawingObject[], tool: string): ContextMode | nul
     const kinds = new Set(selected.map((o) => o.type));
     if (kinds.size === 1) {
       const [only] = kinds;
+      if (only === 'image') return 'image';
       if (only === 'pen') return 'pen';
       if (only === 'line') return 'line';
       if (only === 'shape') return 'shape';

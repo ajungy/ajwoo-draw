@@ -116,7 +116,15 @@ export interface TextObject extends BaseObject {
   align: TextAlign;
 }
 
-export type DrawingObject = PenStroke | LineObject | ShapeObject | TextObject;
+export interface ImageObject extends BaseObject {
+  type: 'image';
+  frame: Rect;
+  /** Embedded raster data only; remote URLs and SVG are not accepted. */
+  src: string;
+  alt: string;
+}
+
+export type DrawingObject = PenStroke | LineObject | ShapeObject | TextObject | ImageObject;
 
 export interface DrawingPage {
   id: PageId;

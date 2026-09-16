@@ -194,7 +194,7 @@ export class EditorStore {
 
   copySelection(): void {
     const objects = this.selectedObjects();
-    if (objects.length > 0) this.clipboard = structuredClone(objects);
+    if (objects.length > 0) { this.clipboard = structuredClone(objects); this.notify(); }
   }
 
   /** Pastes the internal clipboard, centred on `at` when given. */

@@ -23,6 +23,11 @@ function readTheme(el: HTMLElement): SceneTheme {
 export function CanvasView({ onRequestTextEdit, controllerRef }: CanvasViewProps) {
   // Subscribed so the cursor tracks the active tool.
   const store = useEditor();
+  useEffect(() => {
+    const refresh = () => store.invalidate();
+    window.addEventListener('drawing-image-loaded', refresh);
+    return () => window.removeEventListener('drawing-image-loaded', refresh);
+  }, [store]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const themeRef = useRef<SceneTheme | null>(null);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });

@@ -1,3 +1,4 @@
+import { validImageSource } from '../../canvas/renderer/images';
 import { newId } from '../model/ids';
 import {
   DOCUMENT_VERSION,
@@ -101,6 +102,10 @@ function parseObject(v: unknown, z: number): DrawingObject | null {
   const zi = num(v.z, z);
 
   switch (v.type) {
+    case 'image':
+      if (!validImageSource(v.src)) return null;
+      return { id, type: 'image', z: zi, frame: rect(v.frame), src: v.src, alt: str(v.alt) };
+
     case 'pen': {
       const raw = Array.isArray(v.points) ? v.points.slice(0, MAX_POINTS_PER_STROKE) : [];
       const points: StrokePoint[] = raw.map((p) => {

@@ -1,3 +1,4 @@
+import { drawingImage } from './images';
 import { labelInset, shapePathData } from '../shapes';
 import { jitterStrokePoints, lineWobbleAmplitude, seedFromId, shapeWobbleAmplitude, sketchPolyline, sketchVertices } from '../sketch';
 import { cssFont, LINE_HEIGHT, wrapText, type FontSpec } from '../text';
@@ -62,6 +63,12 @@ export function drawObject(
 ): void {
   const isEditing = o.id === editingId;
   switch (o.type) {
+    case 'image': {
+      const image = drawingImage(o.src);
+      if (image.complete && image.naturalWidth) ctx.drawImage(image, o.frame.x, o.frame.y, o.frame.w, o.frame.h);
+      break;
+    }
+
     case 'pen':
       drawPen(ctx, o, scrappy, isDraft);
       break;

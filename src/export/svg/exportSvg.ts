@@ -1,3 +1,4 @@
+import { validImageSource } from '../../canvas/renderer/images';
 import { arrowHeadPoints, dashPattern, lineEndpoints } from '../../canvas/renderer/drawObject';
 import { jitterStrokePoints, lineWobbleAmplitude, seedFromId, shapeWobbleAmplitude, sketchPolyline, sketchVertices } from '../../canvas/sketch';
 import { penOutlinePath } from '../../canvas/renderer/strokes';
@@ -73,6 +74,9 @@ function objectToSvg(
   scrappy: boolean,
 ): string {
   switch (o.type) {
+    case 'image':
+      return validImageSource(o.src) ? `<image x="${n(o.frame.x)}" y="${n(o.frame.y)}" width="${n(o.frame.w)}" height="${n(o.frame.h)}" href="${o.src}" preserveAspectRatio="none"><title>${escapeXml(o.alt)}</title></image>` : '';
+
     case 'pen': {
       const d = scrappy
         ? penOutlinePath({ ...o, points: jitterStrokePoints(o.points, seedFromId(o.id), o.size) })

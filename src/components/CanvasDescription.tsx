@@ -11,7 +11,7 @@ export function CanvasDescription() {
   const store = useEditor();
   const { objects } = store.page;
 
-  const counts = { pen: 0, shape: 0, line: 0, text: 0 };
+  const counts = { pen: 0, shape: 0, line: 0, text: 0, image: 0 };
   const labels: string[] = [];
   for (const o of objects) {
     counts[o.type]++;
@@ -24,6 +24,7 @@ export function CanvasDescription() {
     plural(counts.shape, 'shape'),
     plural(counts.line, 'line'),
     plural(counts.text, 'text object'),
+    plural(counts.image, 'image'),
   ].filter((p): p is string => p !== null);
 
   const summary =

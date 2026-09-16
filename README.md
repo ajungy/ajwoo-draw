@@ -219,3 +219,7 @@ of objects.
 - Shapes can be resized and moved but not rotated through the UI; the model
   supports rotation and both renderers honour it.
 - There is no multiplayer, no comments, and no cloud storage — by design.
+
+### Local drawing-to-image prototype
+
+Select drawing objects and toggle Prompt to describe the finish or changes. Copy the reference for a subscription handoff, or connect your own OpenAI or Gemini API key to generate directly onto the canvas. See [IMAGE-GENERATION.md](IMAGE-GENERATION.md) for setup, testing, billing, and prototype limits. This feature runs with `npm run dev` on localhost and is not enabled in the static deployment.

@@ -42,6 +42,8 @@ export function objectBounds(o: DrawingObject): Rect {
       return expandRect(boundsOfPoints([o.a, o.b]), o.size / 2 + 6);
     case 'text':
       return textBounds(o);
+    case 'image':
+      return o.frame;
     case 'shape': {
       const half = o.size / 2;
       if (o.rotation === 0) return expandRect(o.frame, half);
@@ -131,6 +133,8 @@ export function hitTest(o: DrawingObject, p: Point, tolerance: number): boolean 
       return distToSegment(p, o.a, o.b) <= o.size / 2 + tolerance;
     case 'text':
       return rectContains(expandRect(textBounds(o), tolerance), p);
+    case 'image':
+      return rectContains(expandRect(o.frame, tolerance), p);
     case 'shape': {
       // The whole frame is solid to the touch, filled or not — a transparent
       // rectangle is still a rectangle, and both clicking to select it and
@@ -169,6 +173,7 @@ export function translateObject(o: DrawingObject, dx: number, dy: number): Drawi
       };
     case 'text':
       return { ...o, at: { x: o.at.x + dx, y: o.at.y + dy } };
+    case 'image':
     case 'shape':
       return { ...o, frame: { ...o.frame, x: o.frame.x + dx, y: o.frame.y + dy } };
   }
@@ -194,6 +199,7 @@ export function scaleObjectInto(o: DrawingObject, from: Rect, to: Rect): Drawing
       return { ...o, a: map(o.a), b: map(o.b) };
     case 'text':
       return { ...o, at: map(o.at), width: Math.max(24, o.width * sx), fontSize: Math.max(6, o.fontSize * uniform) };
+    case 'image':
     case 'shape': {
       const tl = map({ x: o.frame.x, y: o.frame.y });
       return {
